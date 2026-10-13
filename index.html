@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -215,7 +216,7 @@ var ROWS=[
  {k:"total",l:"Resultado total de explotación",t:"inc",c:"strong"}
 ];
 var ROWMAP={};ROWS.forEach(function(r){ROWMAP[r.k]=r});
-var budget={},actuals={},meta=null,loaded={b:false,a:false},dbOK=true,dl=null,dbRef=null,canW=false;
+var budget={},actuals={},meta=null,loaded={b:false,a:false},dbOK=true,dl=null,dbRef=null,canW=false,localMode=false;
 var S={scope:"grupo",period:"ytd",metric:"fact",mode:"b",month:null,sim:{},simTab:null},scen={};
 var SIMDEF=[["fact","Ventas de los negocios"],["compras","Compras"],["personal","Personal"],["gestion","Otros gastos de gestión"],["fin","Gastos financieros"],["alibio","Servicios Grupo Alibio"]];
 function simOn(){return Object.keys(S.sim).some(function(id){return LINES.some(function(k){return S.sim[id]&&S.sim[id][k]})})}
@@ -753,7 +754,7 @@ function render(){
   if(!budget[S.scope]&&["grupo","consolidado","operaciones","restaurantes","distribucion"].indexOf(S.scope)<0)S.scope="grupo";
   var c=ctx(S.scope),last=through();
   var st=document.getElementById("status");
-  st.innerHTML='<span class="badge'+(last>=0?" on":"")+'"><i></i>'+(last>=0?"Real cargado hasta "+MESL[last]+" 2027":"Solo presupuesto · sin datos reales aún")+'</span>'+(canW&&dbRef?' <button class="btn" id="imp" style="margin-left:8px">Cargar datos reales</button>':'');
+  st.innerHTML='<span class="badge'+(last>=0?" on":"")+'"><i></i>'+(last>=0?"Real cargado hasta "+MESL[last]+" 2027":"Solo presupuesto · sin datos reales aún")+'</span>'+(localMode?' <span class="badge" title="Sin conexión con los datos compartidos">Modo local · solo en este navegador</span>':'')+(canW&&dbRef?' <button class="btn" id="imp" style="margin-left:8px">Cargar datos reales</button>':'');
 
   var h='<div class="controls"><div class="lbl">Ámbito</div><div class="chips">';
   [["grupo","Grupo"],["consolidado","Consolidado"],["operaciones","Operaciones"],["restaurantes","Restaurantes"],["distribucion","Distribución"]].forEach(function(x){h+=chip(x[1],"scope",x[0],S.scope)});
@@ -814,11 +815,35 @@ document.addEventListener("change",function(e){
   if(e.target.id==="msel"&&e.target.value){S.period=e.target.value;render()}
 });
 
+/* ---------- Modo local (sin conexión a datos compartidos) ---------- */
+var EMBED={"caleta":{"name":"Caleta","group":"rest","order":1,"fact":[85000,90000,100000,130000,130000,150000,180000,300000,190000,90000,110000,120000],"compras":[30175,31950,35500,46150,46150,53250,63900,106500,67450,31950,39050,42600],"personal":[38000,38000,38000,44000,44000,46000,66000,70000,55000,38000,38000,44000],"gestion":[10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000],"fin":[1500,1500,1500,1500,1500,1500,1500,1500,1500,1500,1500,1500],"alibio":[12750,14444,13636,15457,15696,16572,15669,19243,18855,12857,16311,14054]},"sys":{"name":"Santo y Seña","group":"rest","order":2,"fact":[42000,35000,48000,45000,45000,50000,70000,80000,50000,45000,35000,55000],"compras":[14910,12425,17040,15975,15975,17750,24850,28400,17750,15975,12425,19525],"personal":[16000,16000,16000,18000,18000,20000,22000,22000,16000,16000,16000,18000],"gestion":[7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000],"fin":[450,450,450,450,450,450,450,450,450,450,450,450],"alibio":[6300,5617,6545,5351,5433,5524,6094,5132,4962,6428,5190,6441]},"elsanto":{"name":"El Santo","group":"rest","order":3,"fact":[50000,45000,50000,55000,55000,60000,80000,90000,60000,55000,45000,55000],"compras":[17750,15975,17750,19525,19525,21300,28400,31950,21300,19525,15975,19525],"personal":[14000,14000,14000,16000,16000,18000,18000,18000,16000,16000,16000,18000],"gestion":[7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000],"fin":[1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000],"alibio":[7500,7222,6818,6540,6641,6629,6964,5773,5954,7857,6673,6441]},"tienda":{"name":"Tienda SyS","group":"rest","order":4,"fact":[4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000],"compras":[2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000],"personal":[1500,1500,1500,1500,1500,1500,1500,1500,1500,1500,1500,1500],"gestion":[500,500,500,500,500,500,500,500,500,500,500,500],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[600,642,545,476,483,442,348,257,397,571,593,468]},"casa":{"name":"Casa Angeles","group":"rest","order":5,"fact":[4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000],"compras":[1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000],"personal":[1750,1750,1750,1750,1750,1750,1750,1750,1750,1750,1750,1750],"gestion":[1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[600,642,545,476,483,442,348,257,397,571,593,468]},"st3":{"name":"ST3","group":"dist","order":6,"fact":[60006,50005,55006,65007,60006,60006,80008,90009,60006,55006,50005,65007],"compras":[45005,37504,41254,48755,45005,45005,60006,67507,45005,41254,37504,48755],"personal":[10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000],"gestion":[2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[5501,4525,4001,4229,3745,3129,3465,2274,2455,4358,3915,4113]},"somos":{"name":"Somos","group":"dist","order":7,"fact":[15000,15000,25000,25000,25000,25000,30000,40000,25000,20000,15000,30000],"compras":[4500,4500,7500,7500,7500,7500,9000,12000,7500,6000,4500,9000],"personal":[10000,10000,12000,12000,14000,14000,14000,14000,12000,10000,10000,12000],"gestion":[3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[2250,2407,3409,2973,3019,2762,2612,2566,2481,2857,2224,3513]},"alibio":{"name":"Alibio Gestión","group":"serv","order":8,"fact":[39000,39000,39000,39000,39000,39000,39000,39000,39000,39000,39000,39000],"compras":[1170,1170,1170,1170,1170,1170,1170,1170,1170,1170,1170,1170],"personal":[35500,35500,35500,35500,35500,35500,35500,35500,35500,35500,35500,35500],"gestion":[2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[0,0,0,0,0,0,0,0,0,0,0,0]}};
+var EMBEDMETA={"source":"Presupuesto 2027 · PyG por negocio (Excel de tesorería oct. 2026 – dic. 2027)","updated":"13/10/2026"};
+function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function startLocal(){
+  if(localMode)return;
+  localMode=true;dbOK=true;
+  budget=JSON.parse(JSON.stringify(EMBED));meta=EMBEDMETA;
+  actuals=lsGet("ppto27_actuals",{});scen=lsGet("ppto27_scen",{});
+  loaded.b=true;loaded.a=true;canW=true;
+  if(!dl)dl={save:function(o){var blob=new Blob([o.data],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=o.filename;document.body.appendChild(a);a.click();a.remove();return Promise.resolve()}};
+  dbRef={doc:function(path){var q=path.split("/");return {
+    set:function(d){
+      if(q[0]==="actuals"){actuals[q[1]]=d;lsSet("ppto27_actuals",actuals)}
+      else if(q[0]==="scenarios"){scen[q[1]]=d;lsSet("ppto27_scen",scen)}
+      else if(q[0]==="meta"){meta=d}
+      refreshSim();render();return Promise.resolve();
+    },
+    delete:function(){if(q[0]==="scenarios"){delete scen[q[1]];lsSet("ppto27_scen",scen)}refreshSim();render();return Promise.resolve()}
+  }}};
+  refreshSim();render();
+}
+
 function snapMap(snap){var o={};snap.docs.forEach(function(d){o[d.id]=d.data()});return o}
-function fail(){dbOK=false;render()}
+function fail(){startLocal()}
 buildSim();simEvents();
 document.getElementById("simfab").addEventListener("click",function(){var b=document.getElementById("simbox");b.open=true;b.scrollIntoView({behavior:"smooth",block:"start"})});
-if(!window.claude||!window.claude.use){dbOK=false;render()}
+if(!window.claude||!window.claude.use){startLocal()}
 else{
   window.claude.use("user").then(function(u){return u?u.can("data.write"):null}).then(function(v){canW=v!==false;refreshSim();if(loaded.b)render()}).catch(function(){});
   window.claude.use("downloads").then(function(d){dl=d;if(loaded.b)render()}).catch(function(){});
