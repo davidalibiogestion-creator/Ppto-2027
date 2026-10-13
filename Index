@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Presupuesto 2027 · Presupuesto vs. Real</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f2f4fb;--card:#fff;--ink:#111a33;--ink2:#5a6785;--line:#e2e7f3;--soft:#eef1fa;
+  --accent:#4f46e5;--accent-soft:#e8e7fd;--bar-b:#cfd4f5;--bar-a:#4f46e5;
+  --good:#059669;--good-bg:#dcf7ec;--bad:#e11d48;--bad-bg:#ffe4ea;--warn-bg:#fff4dc;--warn:#9a5b00;
+  --sim:#f59e0b;--sim-soft:#fff4dc;--sim-ink:#92400e;
+  --shadow:0 1px 2px rgba(17,26,51,.06),0 6px 18px rgba(79,70,229,.08);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1020;--card:#131a33;--ink:#e9edfb;--ink2:#9aa7c7;--line:#25305a;--soft:#1a2347;
+    --accent:#8b83ff;--accent-soft:#242a63;--bar-b:#37406f;--bar-a:#8b83ff;
+    --good:#34d399;--good-bg:#10302a;--bad:#fb7185;--bad-bg:#3b1822;--warn-bg:#35290d;--warn:#f1c25b;
+    --sim:#fbbf24;--sim-soft:#33260a;--sim-ink:#fbbf24;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1020;--card:#131a33;--ink:#e9edfb;--ink2:#9aa7c7;--line:#25305a;--soft:#1a2347;
+  --accent:#8b83ff;--accent-soft:#242a63;--bar-b:#37406f;--bar-a:#8b83ff;
+  --good:#34d399;--good-bg:#10302a;--bad:#fb7185;--bad-bg:#3b1822;--warn-bg:#35290d;--warn:#f1c25b;
+  --sim:#fbbf24;--sim-soft:#33260a;--sim-ink:#fbbf24;--shadow:none;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%}
+.wrap{max-width:1100px;margin:0 auto;padding:0 14px 40px}
+header.top{padding:18px 0 10px}
+h1{font-size:21px;margin:0;font-weight:700;letter-spacing:-.01em}
+.sub{color:var(--ink2);font-size:13px;margin-top:2px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--soft);color:var(--ink2);margin-top:8px}
+.badge.on{background:var(--accent-soft);color:var(--accent)}
+.badge i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.controls{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:8px 0 10px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);margin:6px 0 5px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:13px;font-weight:500;padding:6px 12px;border-radius:99px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.sep{margin-left:8px}
+select.chip{appearance:none;padding-right:12px}
+.banner{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:14px}
+.note{color:var(--ink2);font-size:12px;margin:2px 0 12px}
+.grid{display:grid;gap:12px}
+.kpis{grid-template-columns:repeat(2,1fr)}
+@media(min-width:760px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px}
+.card h2{font-size:14px;margin:0 0 10px;font-weight:650;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.kpi .t{font-size:12px;color:var(--ink2);font-weight:500}
+.kpi .v{font-size:21px;font-weight:700;margin:2px 0;letter-spacing:-.01em}
+.kpi .p{font-size:12px;color:var(--ink2)}
+.delta{display:inline-block;font-weight:600;font-size:12px;padding:2px 7px;border-radius:6px;margin-top:6px}
+.good{color:var(--good);background:var(--good-bg)}
+.bad{color:var(--bad);background:var(--bad-bg)}
+.neu{color:var(--ink2);background:var(--soft)}
+.txtgood{color:var(--good)}.txtbad{color:var(--bad)}
+.two{display:grid;gap:12px;margin-top:12px}
+@media(min-width:900px){.two{grid-template-columns:1.25fr 1fr}}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);font-weight:600}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--card);z-index:1}
+tr.sub td{font-weight:650;background:var(--soft)}
+tr.sub td:first-child{background:var(--soft)}
+tr.strong td{font-weight:700;border-top:2px solid var(--ink)}
+tr.strong td:first-child{background:var(--card)}
+td.pct{color:var(--ink2);font-size:12px}
+svg{width:100%;height:auto;display:block}
+.bar-b{fill:var(--bar-b)}.bar-a{fill:var(--bar-a)}
+.gl{stroke:var(--line);stroke-width:1}.ax{fill:var(--ink2);font-size:10.5px}
+.hit{fill:transparent;cursor:pointer}.sel{fill:var(--accent);opacity:.08}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--ink2);align-items:center}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.legend .lb::before{background:var(--bar-b)}.legend .la::before{background:var(--bar-a)}
+.detail{margin-top:8px;font-size:13px;background:var(--soft);border-radius:8px;padding:8px 10px}
+.biz{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.biz:last-child{border-bottom:0}
+.biz .n{font-weight:600}.biz .r{text-align:right;font-weight:600}
+.biz .m{color:var(--ink2);font-size:12px}
+.dbar{grid-column:1/-1;height:6px;background:var(--soft);border-radius:4px;position:relative;margin-top:4px}
+.dbar i{position:absolute;top:0;height:100%;border-radius:4px}
+.alert{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.alert:last-child{border-bottom:0}
+.cov{display:grid;grid-template-columns:110px repeat(12,1fr);gap:3px;align-items:center;font-size:11px;color:var(--ink2)}
+.dot{height:12px;border-radius:3px;background:var(--soft)}.dot.on{background:var(--accent)}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer}
+.empty{padding:40px 10px;text-align:center;color:var(--ink2)}
+.ov{position:fixed;inset:0;background:rgba(10,20,32,.55);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 12px calc(16px + env(safe-area-inset-bottom,0px));overflow:auto}
+.modal{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);width:100%;max-width:680px;padding:18px}
+.modal h2{margin:0 0 4px;font-size:17px}
+.modal p{margin:4px 0 12px;color:var(--ink2);font-size:13px}
+.drop{border:1.5px dashed var(--line);border-radius:12px;padding:22px 14px;text-align:center;background:var(--soft);color:var(--ink2);cursor:pointer}
+.drop:hover,.drop.on{border-color:var(--accent);color:var(--accent)}
+.btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn[disabled]{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:flex-end}
+.msg{font-size:13px;border-radius:8px;padding:8px 10px;margin:8px 0}
+.msg.err{background:var(--bad-bg);color:var(--bad)}.msg.ok{background:var(--good-bg);color:var(--good)}.msg.wr{background:var(--warn-bg);color:var(--warn)}
+.msg ul{margin:4px 0 0;padding-left:18px}
+.fmt{font-size:12px;color:var(--ink2);background:var(--soft);border-radius:8px;padding:8px 10px;margin-top:10px}
+
+.sim{margin:12px 0;border:2px solid var(--accent);border-radius:14px;background:var(--card);box-shadow:0 2px 14px rgba(11,110,122,.15)}
+.fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--accent);color:#fff;border:0;border-radius:999px;padding:11px 16px;font:inherit;font-size:14px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.3);cursor:pointer}
+.sim>summary{cursor:pointer;list-style:none;padding:14px;font-weight:700;font-size:15px;background:var(--accent-soft);color:var(--accent);border-radius:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sim>summary::-webkit-details-marker{display:none}
+.sim>summary:before{content:"▸";color:var(--ink2);transition:transform .15s}
+.sim[open]>summary:before{transform:rotate(90deg)}
+.sim .on{background:var(--warn-bg);color:var(--warn);border-radius:999px;font-size:11px;font-weight:600;padding:2px 9px}
+#simbody{padding:0 14px 14px}
+#simbody .sd{margin:0 0 10px;color:var(--ink2);font-size:13px}
+.sl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.sl{background:var(--soft);border-radius:12px;padding:10px 12px}
+.sl .sh{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.sl .sh b{font-variant-numeric:tabular-nums}
+.sl .sh b.up{color:var(--good)}.sl .sh b.dn{color:var(--bad)}
+.sr{display:flex;align-items:center;gap:8px}
+.sr input[type=range]{flex:1;min-width:0;accent-color:var(--accent);height:28px}
+.sb{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;line-height:1;cursor:pointer;flex:none}
+.sc{display:flex;justify-content:space-between;font-size:10px;color:var(--ink2);padding:0 38px}
+.lk{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px}
+.sact{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.sact input[type=text],.sact select{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;min-width:0}
+.scard{margin-top:12px}
+.adj{margin:0 0 10px;padding-left:18px;font-size:12.5px;color:var(--ink2)}
+.stitle{margin:10px 0 8px;font-size:13px;color:var(--ink2)}
+.sim td.up{color:var(--good)}.sim td.dn{color:var(--bad)}
+.scard td.up{color:var(--good)}.scard td.dn{color:var(--bad)}
+
+/* ---- Tema visual ---- */
+#ctl{position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.controls{position:static}
+.sim{margin:14px 0}
+.sim>summary .tg{margin-left:auto;background:var(--sim);color:#2b1a00;border-radius:999px;font-size:12px;font-weight:700;padding:4px 12px}
+.sim>summary .tg::after{content:"Abrir ▾"}
+.sim[open]>summary .tg::after{content:"Cerrar ▴"}
+header.top{background:linear-gradient(135deg,#1e1b4b 0%,#4338ca 55%,#7c3aed 100%);color:#fff;border-radius:18px;padding:20px 20px 18px;margin-top:14px;box-shadow:0 10px 30px rgba(67,56,202,.28)}
+header.top h1{color:#fff;font-size:24px}
+header.top .sub{color:rgba(255,255,255,.78)}
+header.top .badge{background:rgba(255,255,255,.18);color:#fff}
+header.top .badge.on{background:rgba(52,211,153,.28);color:#d1fae5}
+header.top .btn{background:#fff;color:#3730a3;border-color:transparent}
+.controls{background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px)}
+.lbl{color:var(--accent)}
+.chip{transition:background .15s,transform .05s}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(79,70,229,.35)}
+.kpis .card{border-top:3px solid var(--accent)}
+.kpis .card:nth-child(2){border-top-color:#7c3aed}
+.kpis .card:nth-child(3){border-top-color:#0891b2}
+.kpis .card:nth-child(4){border-top-color:#f59e0b}
+.kpi .v{font-size:23px}
+th{color:var(--accent)}
+tr.sub td{background:var(--accent-soft)}tr.sub td:first-child{background:var(--accent-soft)}
+tr.strong td{border-top:2px solid var(--accent)}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.pri{background:linear-gradient(135deg,#4f46e5,#7c3aed);border-color:transparent}
+/* Simulador en ámbar para distinguir el escenario del presupuesto */
+.sim{border:2px solid var(--sim);box-shadow:0 6px 22px rgba(245,158,11,.18)}
+.sim>summary{background:var(--sim-soft);color:var(--sim-ink)}
+.sim .on{background:var(--sim);color:#2b1a00}
+.sl{background:var(--sim-soft)}
+.sr input[type=range]{accent-color:var(--sim)}
+.sb:hover{border-color:var(--sim)}
+.fab{background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff}
+.scard{border-left:4px solid var(--sim)}
+.sfall{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin:0 0 12px;padding:8px 12px;border-radius:10px;background:var(--sim-soft);color:var(--sim-ink);font-size:13px}
+.sfall span{font-size:12px;opacity:.85}
+.sfall select,.sf select{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:4px 8px;font:inherit;font-size:13px}
+.sf{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);margin-top:6px}
+footer{color:var(--ink2);font-size:12px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Presupuesto 2027</h1>
+    <div class="sub">Presupuesto vs. real · grupo y negocios · importes en euros</div>
+    <div id="status"></div>
+  </header>
+  <div id="ctl"></div>
+  <div id="app"><div class="empty">Cargando presupuesto…</div></div>
+  <details class="sim" id="simbox"><summary><span>🎚️ Simulador de escenarios · sube o baja ventas y costes de 5 en 5 %</span><span id="simbadge"></span><span class="tg"></span></summary><div id="simbody"></div></details>
+  <div id="app2"></div>
+  <footer id="foot"></footer>
+  <button class="fab" id="simfab" aria-label="Ir al simulador de escenarios">🎚️ Simulador</button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+"use strict";
+var MES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+var MESL=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+var LINES=["fact","compras","personal","gestion","fin","alibio"];
+var ROWS=[
+ {k:"fact",l:"Facturación",t:"inc"},
+ {k:"compras",l:"Compras",t:"cost"},
+ {k:"margen",l:"Margen bruto",t:"inc",c:"sub"},
+ {k:"personal",l:"Personal",t:"cost"},
+ {k:"gestion",l:"Otros gastos de gestión",t:"cost"},
+ {k:"fin",l:"Gastos financieros",t:"cost"},
+ {k:"directo",l:"Resultado directo",t:"inc",c:"sub"},
+ {k:"alibio",l:"Servicios Grupo Alibio",t:"cost"},
+ {k:"total",l:"Resultado total de explotación",t:"inc",c:"strong"}
+];
+var ROWMAP={};ROWS.forEach(function(r){ROWMAP[r.k]=r});
+var budget={},actuals={},meta=null,loaded={b:false,a:false},dbOK=true,dl=null,dbRef=null,canW=false;
+var S={scope:"grupo",period:"ytd",metric:"fact",mode:"b",month:null,sim:{},simTab:null},scen={};
+var SIMDEF=[["fact","Ventas de los negocios"],["compras","Compras"],["personal","Personal"],["gestion","Otros gastos de gestión"],["fin","Gastos financieros"],["alibio","Servicios Grupo Alibio"]];
+function simOn(){return Object.keys(S.sim).some(function(id){return LINES.some(function(k){return S.sim[id]&&S.sim[id][k]})})}
+function fac(k,id,kind,m){
+  if(kind!=="b")return 1;
+  var sm=S.sim[id];if(!sm)return 1;
+  var fr=sm.from||{};
+  var f=m>=(fr[k]||0)?1+(sm[k]||0)/100:1;
+  if(k==="compras"&&sm.link&&m>=(fr.fact||0))f*=1+(sm.fact||0)/100;
+  return f;
+}
+
+var nf=new Intl.NumberFormat("es-ES",{maximumFractionDigits:0});
+var nfs=new Intl.NumberFormat("es-ES",{maximumFractionDigits:0,signDisplay:"exceptZero"});
+var pf=new Intl.NumberFormat("es-ES",{maximumFractionDigits:1,minimumFractionDigits:1});
+var pfs=new Intl.NumberFormat("es-ES",{maximumFractionDigits:1,minimumFractionDigits:1,signDisplay:"exceptZero"});
+function eur(v){return v==null?"–":nf.format(Math.round(v))+" €"}
+function num(v){return v==null?"–":nf.format(Math.round(v))}
+function dnum(v){return v==null?"–":nfs.format(Math.round(v))}
+function pct(v){return v==null||!isFinite(v)?"–":pf.format(v)+"%"}
+function dpct(v){return v==null||!isFinite(v)?"–":pfs.format(v)+"%"}
+function kfmt(v){var a=Math.abs(v);if(a>=1e6)return (v/1e6).toFixed(1).replace(".",",")+"M";if(a>=1e3)return Math.round(v/1e3)+"k";return String(Math.round(v))}
+
+function ids(){return Object.keys(budget).sort(function(a,b){return (budget[a].order||0)-(budget[b].order||0)})}
+function scopeIds(s){
+  var all=ids();
+  if(s==="grupo"||s==="consolidado")return all;
+  if(s==="operaciones")return all.filter(function(i){return budget[i].group!=="serv"});
+  if(s==="restaurantes")return all.filter(function(i){return budget[i].group==="rest"});
+  if(s==="distribucion")return all.filter(function(i){return budget[i].group==="dist"});
+  return budget[s]?[s]:[];
+}
+function scopeName(s){
+  var m={grupo:"Grupo (incluye Alibio Gestión)",consolidado:"Grupo consolidado (sin intragrupo)",operaciones:"Operaciones (sin Alibio Gestión)",restaurantes:"Restaurantes",distribucion:"Distribución"};
+  return m[s]||(budget[s]?budget[s].name:s);
+}
+function derive(o){
+  var f=function(fn){return Array.apply(null,Array(12)).map(function(_,i){return o.fact[i]==null?null:fn(i)})};
+  o.margen=f(function(i){return o.fact[i]-o.compras[i]});
+  o.directo=f(function(i){return o.fact[i]-o.compras[i]-o.personal[i]-o.gestion[i]-o.fin[i]});
+  o.total=f(function(i){return o.fact[i]-o.compras[i]-o.personal[i]-o.gestion[i]-o.fin[i]-o.alibio[i]});
+  return o;
+}
+function build(list,kind,elim,nosim){
+  var out={},avail=[],m,l,i;
+  var sf=function(k,id,mm){return nosim?1:fac(k,id,kind,mm)};
+  LINES.forEach(function(k){out[k]=[]});
+  for(m=0;m<12;m++){
+    var ok=list.length>0;
+    if(kind==="a"){
+      for(i=0;i<list.length;i++){var a=actuals[list[i]];if(!a||!a.fact||a.fact[m]==null){ok=false;break}}
+    }
+    avail.push(ok);
+    LINES.forEach(function(k){
+      if(!ok){out[k].push(null);return}
+      var s=0;
+      list.forEach(function(id){var d=(kind==="a"?actuals:budget)[id];s+=((d&&d[k]&&d[k][m])||0)*sf(k,id,m)});
+      out[k].push(s);
+    });
+  }
+  if(elim&&list.indexOf("alibio")>=0){for(m=0;m<12;m++){if(!avail[m])continue;var e=0;list.forEach(function(id){if(id!=="alibio"){var dd=(kind==="a"?actuals:budget)[id];e+=((dd&&dd.alibio&&dd.alibio[m])||0)*sf("alibio",id,m)}});out.fact[m]-=e;out.alibio[m]-=e}}
+  derive(out);out.avail=avail;return out;
+}
+function sumIdx(arr,idx){var s=0;idx.forEach(function(i){if(arr[i]!=null)s+=arr[i]});return s}
+function periodMonths(p,avail){
+  if(p==="ytd"){var r=[];avail.forEach(function(a,i){if(a)r.push(i)});return r.length?r:[0,1,2,3,4,5,6,7,8,9,10,11]}
+  if(p==="year")return [0,1,2,3,4,5,6,7,8,9,10,11];
+  if(p[0]==="q"){var q=+p[1]-1;return [q*3,q*3+1,q*3+2]}
+  if(p[0]==="m")return [+p.slice(1)];
+  return [0];
+}
+function periodLabel(p){
+  if(p==="ytd")return "acumulado";if(p==="year")return "año 2027";
+  if(p[0]==="q")return "T"+p[1];if(p[0]==="m")return MESL[+p.slice(1)];return p;
+}
+function ctx(scope){
+  var list=scopeIds(scope),el=scope==="consolidado",B=build(list,"b",el),A=build(list,"a",el);
+  var M=periodMonths(S.period,A.avail);
+  var C=M.filter(function(i){return A.avail[i]});
+  var cmp=C.length>0,use=cmp?C:M;
+  return {list:list,B:B,A:A,M:M,C:C,cmp:cmp,use:use,hasAny:A.avail.some(Boolean)};
+}
+function rowVals(c,k){
+  var bv=sumIdx(c.B[k],c.use),av=c.cmp?sumIdx(c.A[k],c.use):null;
+  return {b:bv,a:av,d:av==null?null:av-bv,p:av==null?null:(bv===0?null:(av-bv)/Math.abs(bv)*100)};
+}
+function fav(t,d){return d==null||d===0?"neu":((t==="inc"?d>0:d<0)?"good":"bad")}
+
+function elimTotal(){var t=0;ids().forEach(function(id){if(budget[id].group!=="serv"){(budget[id].alibio||[]).forEach(function(v){t+=v||0})}});return t}
+function through(){
+  var c=build(ids(),"a"),last=-1;c.avail.forEach(function(a,i){if(a)last=i});return last;
+}
+
+function kpiCard(title,r,isPct){
+  var fmt=isPct?pct:eur;
+  var h='<div class="card kpi"><div class="t">'+title+'</div>';
+  if(r.a==null){
+    h+='<div class="v">'+fmt(r.b)+'</div><div class="p">Presupuesto</div><span class="delta neu">Sin real todavía</span>';
+  }else{
+    var d=r.a-r.b,cl=fav("inc",d);
+    h+='<div class="v">'+fmt(r.a)+'</div><div class="p">Presupuesto '+fmt(r.b)+'</div>';
+    h+='<span class="delta '+cl+'">'+(isPct?(pfs.format(d)+" pp"):(dnum(d)+" €"+(r.b?" · "+dpct(d/Math.abs(r.b)*100):"")))+'</span>';
+  }
+  return h+'</div>';
+}
+
+function chartSVG(c){
+  var W=720,H=250,pl=42,pr=6,pt=10,pb=24,k=S.metric;
+  var b=c.B[k],a=c.A[k];
+  var vals=b.slice();a.forEach(function(v){if(v!=null)vals.push(v)});
+  var mx=Math.max.apply(null,vals.concat([0])),mn=Math.min.apply(null,vals.concat([0]));
+  if(mx===mn)mx=mn+1;
+  var rg=mx-mn,y=function(v){return pt+(mx-v)/rg*(H-pt-pb)},z=y(0),gw=(W-pl-pr)/12,bw=gw*.32,s="";
+  for(var t=0;t<=4;t++){
+    var v=mn+rg*t/4,yy=y(v);
+    s+='<line class="gl" x1="'+pl+'" x2="'+(W-pr)+'" y1="'+yy+'" y2="'+yy+'"/><text class="ax" x="'+(pl-5)+'" y="'+(yy+3)+'" text-anchor="end">'+kfmt(v)+'</text>';
+  }
+  for(var m=0;m<12;m++){
+    var x0=pl+m*gw;
+    if(S.month===m)s+='<rect class="sel" x="'+x0+'" y="'+pt+'" width="'+gw+'" height="'+(H-pt-pb)+'"/>';
+    var bx=x0+gw*.14,bv=b[m];
+    s+='<rect class="bar-b" x="'+bx+'" y="'+Math.min(y(bv),z)+'" width="'+bw+'" height="'+Math.max(Math.abs(y(bv)-z),1)+'" rx="2"/>';
+    if(a[m]!=null){var av=a[m];s+='<rect class="bar-a" x="'+(bx+bw+2)+'" y="'+Math.min(y(av),z)+'" width="'+bw+'" height="'+Math.max(Math.abs(y(av)-z),1)+'" rx="2"/>'}
+    s+='<text class="ax" x="'+(x0+gw/2)+'" y="'+(H-8)+'" text-anchor="middle">'+MES[m]+'</text>';
+    s+='<rect class="hit" data-m="'+m+'" x="'+x0+'" y="'+pt+'" width="'+gw+'" height="'+(H-pt)+'"/>';
+  }
+  s+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+z+'" y2="'+z+'" stroke="var(--ink2)" stroke-width="1"/>';
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Presupuesto y real por mes">'+s+'</svg>';
+}
+function monthDetail(c){
+  var m=S.month;
+  if(m==null){var la=-1;c.A.avail.forEach(function(x,i){if(x)la=i});m=la>=0?la:null}
+  if(m==null)return '<div class="detail">Toca un mes para ver el detalle.</div>';
+  var k=S.metric,bv=c.B[k][m],av=c.A[k][m],t=ROWMAP[k].t;
+  var h='<div class="detail"><b>'+MESL[m].charAt(0).toUpperCase()+MESL[m].slice(1)+'</b> · Ppto '+eur(bv);
+  if(av!=null){var d=av-bv;h+=' · Real '+eur(av)+' · <span class="'+(fav(t,d)==="good"?"txtgood":fav(t,d)==="bad"?"txtbad":"")+'">Desv. '+dnum(d)+' €</span>'}
+  else h+=' · Real: sin datos';
+  return h+'</div>';
+}
+
+function summaryTable(c){
+  var h='<div class="tw"><table><thead><tr><th>Concepto</th><th>Ppto</th><th>Real</th><th>Desv. €</th><th>Desv. %</th></tr></thead><tbody>';
+  var fb=sumIdx(c.B.fact,c.use),fa=c.cmp?sumIdx(c.A.fact,c.use):null;
+  ROWS.forEach(function(r){
+    var v=rowVals(c,r.k),cl=fav(r.t,v.d);
+    h+='<tr class="'+(r.c||"")+'"><td>'+r.l+'</td><td>'+num(v.b)+'</td><td>'+num(v.a)+'</td><td class="'+(cl==="good"?"txtgood":cl==="bad"?"txtbad":"")+'">'+dnum(v.d)+'</td><td class="'+(cl==="good"?"txtgood":cl==="bad"?"txtbad":"")+'">'+dpct(v.p)+'</td></tr>';
+    if(r.k==="margen"||r.k==="directo"||r.k==="total"){
+      h+='<tr><td class="pct">% s/ ventas</td><td class="pct">'+pct(fb?v.b/fb*100:null)+'</td><td class="pct">'+(fa?pct(v.a/fa*100):"–")+'</td><td class="pct" colspan="2"></td></tr>';
+    }
+  });
+  return h+'</tbody></table></div>';
+}
+
+function monthlyTable(c){
+  var h='<div class="tw"><table><thead><tr><th>Concepto</th>';
+  MES.forEach(function(m){h+='<th>'+m+'</th>'});h+='<th>Total</th></tr></thead><tbody>';
+  ROWS.forEach(function(r){
+    h+='<tr class="'+(r.c||"")+'"><td>'+r.l+'</td>';
+    var tot=0,any=false;
+    for(var m=0;m<12;m++){
+      var b=c.B[r.k][m],a=c.A[r.k][m],val=null,cl="";
+      if(S.mode==="b")val=b;else if(S.mode==="a")val=a;else if(a!=null){val=a-b;var f=fav(r.t,val);cl=f==="good"?"txtgood":f==="bad"?"txtbad":""}
+      if(val!=null){tot+=val;any=true}
+      h+='<td class="'+cl+'">'+(S.mode==="d"?dnum(val):num(val))+'</td>';
+    }
+    var tc="";if(S.mode==="d"&&any){var ff=fav(r.t,tot);tc=ff==="good"?"txtgood":ff==="bad"?"txtbad":""}
+    h+='<td class="'+tc+'"><b>'+(any?(S.mode==="d"?dnum(tot):num(tot)):"–")+'</b></td></tr>';
+  });
+  return h+'</tbody></table></div>';
+}
+
+function bizList(c){
+  if(c.list.length<2)return "";
+  var rows=c.list.map(function(id){
+    var sub={list:[id],B:build([id],"b"),A:build([id],"a")};
+    sub.use=c.use;sub.cmp=c.cmp&&c.use.every(function(i){return sub.A.avail[i]});
+    var f=rowVals(sub,"fact"),t=rowVals(sub,"total");
+    return {id:id,n:budget[id].name,f:f,t:t};
+  });
+  var maxd=Math.max.apply(null,rows.map(function(r){return Math.abs(r.t.d||0)}).concat([1]));
+  var h='<div class="card"><h2>Por negocio · '+periodLabel(S.period)+'</h2>';
+  rows.forEach(function(r){
+    var cl=fav("inc",r.t.d);
+    h+='<div class="biz"><div class="n">'+r.n+'</div><div class="r '+(cl==="good"?"txtgood":cl==="bad"?"txtbad":"")+'">'+(r.t.d==null?eur(r.t.b):dnum(r.t.d)+" €")+'</div>';
+    h+='<div class="m">Fact. '+num(r.f.b)+(r.f.a!=null?" → "+num(r.f.a):"")+' · Result. '+num(r.t.b)+(r.t.a!=null?" → "+num(r.t.a):"")+'</div><div class="m" style="text-align:right">'+(r.t.d==null?"ppto":"desv. resultado")+'</div>';
+    if(r.t.d!=null){
+      var w=Math.abs(r.t.d)/maxd*50;
+      h+='<div class="dbar"><i style="'+(r.t.d>=0?"left:50%":"right:50%")+';width:'+w+'%;background:var(--'+(cl==="bad"?"bad":"good")+')"></i></div>';
+    }
+    h+='</div>';
+  });
+  return h+'</div>';
+}
+
+function alertsCard(c){
+  var h='<div class="card"><h2>Principales desviaciones</h2>';
+  if(!c.cmp)return h+'<div class="note">Aparecerán cuando se carguen datos reales.</div></div>';
+  var items=[];
+  ROWS.forEach(function(r){
+    if(r.k==="margen")return;
+    var v=rowVals(c,r.k);
+    if(v.d!=null&&fav(r.t,v.d)==="bad"&&Math.abs(v.d)>=1000&&Math.abs(v.p||0)>=5)items.push({r:r,v:v});
+  });
+  items.sort(function(a,b){return Math.abs(b.v.d)-Math.abs(a.v.d)});
+  if(!items.length)return h+'<div class="note">Sin desviaciones desfavorables relevantes (≥ 5 % y ≥ 1.000 €).</div></div>';
+  items.slice(0,5).forEach(function(i){
+    h+='<div class="alert"><span>'+i.r.l+'</span><span class="txtbad"><b>'+dnum(i.v.d)+' €</b> · '+dpct(i.v.p)+'</span></div>';
+  });
+  return h+'</div>';
+}
+
+function coverage(){
+  var h='<div class="card"><h2>Estado de carga de datos reales</h2><div class="cov"><span></span>';
+  MES.forEach(function(m){h+='<span style="text-align:center">'+m.charAt(0)+'</span>'});
+  ids().forEach(function(id){
+    h+='<span>'+budget[id].name+'</span>';
+    for(var m=0;m<12;m++){var a=actuals[id];h+='<span class="dot'+(a&&a.fact&&a.fact[m]!=null?" on":"")+'"></span>'}
+  });
+  return h+'</div></div>';
+}
+
+function exportCSV(){
+  var c=ctx(S.scope),rows=[["Ámbito","Concepto","Mes","Presupuesto","Real","Desviación"]];
+  ROWS.forEach(function(r){
+    for(var m=0;m<12;m++){
+      var b=c.B[r.k][m],a=c.A[r.k][m];
+      rows.push([scopeName(S.scope),r.l,MES[m]+" 2027",b==null?"":b.toFixed(2),a==null?"":a.toFixed(2),a==null?"":(a-b).toFixed(2)]);
+    }
+  });
+  var txt="\uFEFF"+rows.map(function(r){return r.map(function(x){return String(x).replace(".",",")}).join(";")}).join("\n");
+  dl.save({filename:"presupuesto-2027-"+S.scope+".csv",data:txt}).catch(function(){});
+}
+
+
+/* ---------- Importación de datos reales ---------- */
+function norm(x){return String(x==null?"":x).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+var COLMAP={negocio:"neg",restaurante:"neg",empresa:"neg",sociedad:"neg",mes:"mes",periodo:"mes",facturacion:"fact",ventas:"fact",ingresos:"fact",compras:"compras",consumos:"compras",personal:"personal",gestion:"gestion",otrosgastosdegestion:"gestion",gastosdegestion:"gestion",financiero:"fin",fin:"fin",gastosfinancieros:"fin",resultadofinanciero:"fin",alibio:"alibio",serviciosgrupoalibio:"alibio",serviciosalibio:"alibio"};
+function pnum(v){
+  if(v==null||v==="")return null;
+  if(typeof v==="number")return isFinite(v)?v:null;
+  var s=String(v).replace(/[€\s\u00a0]/g,"");if(!s)return null;
+  var neg=/^\(.*\)$/.test(s);s=s.replace(/[()]/g,"");
+  var c=s.indexOf(","),d=s.indexOf(".");
+  if(c>=0&&d>=0){if(c>d)s=s.replace(/\./g,"").replace(",",".");else s=s.replace(/,/g,"")}
+  else if(c>=0){s=s.replace(",",".")}
+  else if(d>=0&&/^-?\d{1,3}(\.\d{3})+$/.test(s)){s=s.replace(/\./g,"")}
+  var n=parseFloat(s);if(!isFinite(n))return null;return neg?-n:n;
+}
+function pmes(v){
+  if(typeof v==="number"&&v>=1&&v<=12)return {m:v-1,y:null};
+  var s=String(v==null?"":v).trim().toLowerCase();if(!s)return null;
+  var y=null,m=null,r;
+  r=s.match(/^(\d{4})[-\/](\d{1,2})/);
+  if(r){y=+r[1];m=+r[2]}
+  else{r=s.match(/^(\d{1,2})[-\/](\d{4})/);
+    if(r){m=+r[1];y=+r[2]}
+    else if(/^\d{1,2}$/.test(s)){m=+s}
+    else{var k=norm(s).slice(0,3),i=-1;MESL.forEach(function(x,j){if(norm(x).slice(0,3)===k)i=j});if(i>=0)m=i+1;var ry=s.match(/(\d{4})/);if(ry)y=+ry[1]}}
+  if(!m||m<1||m>12)return null;return {m:m-1,y:y};
+}
+function parseCSV(t){
+  t=t.replace(/^\uFEFF/,"");var first=t.split(/\r?\n/)[0]||"";
+  var del=first.split(";").length>=first.split(",").length?";":",";
+  var rows=[],row=[],f="",q=false;
+  for(var i=0;i<t.length;i++){var ch=t[i];
+    if(q){if(ch==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=ch}
+    else if(ch==='"')q=true;
+    else if(ch===del){row.push(f);f=""}
+    else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&t[i+1]==="\n")i++;row.push(f);f="";rows.push(row);row=[]}
+    else f+=ch;
+  }
+  if(f!==""||row.length){row.push(f);rows.push(row)}
+  return rows;
+}
+function analyse(sheets){
+  var res={items:[],errors:[],warns:[],skipped:0,found:false};
+  var lookup={};ids().forEach(function(id){lookup[norm(id)]=id;lookup[norm(budget[id].name)]=id});
+  for(var si=0;si<sheets.length;si++){
+    var rows=sheets[si],hi=-1,map={};
+    for(var r=0;r<Math.min(rows.length,30);r++){
+      var mm={},has={};
+      (rows[r]||[]).forEach(function(cell,ci){var k=COLMAP[norm(cell)];if(k&&mm[k]==null){mm[k]=ci;has[k]=1}});
+      if(has.neg&&has.mes&&has.fact){hi=r;map=mm;break}
+    }
+    if(hi<0)continue;res.found=true;
+    var seen={};
+    for(var i=hi+1;i<rows.length;i++){
+      var row=rows[i]||[];if(row.every(function(x){return x===""||x==null}))continue;
+      var ln=i+1,nm=row[map.neg],id=lookup[norm(nm)];
+      if(!id){res.errors.push("Fila "+ln+": negocio «"+nm+"» no reconocido.");continue}
+      var pm=pmes(row[map.mes]);
+      if(!pm){res.errors.push("Fila "+ln+": mes «"+row[map.mes]+"» no válido.");continue}
+      if(pm.y&&pm.y!==2027){res.errors.push("Fila "+ln+": el año "+pm.y+" no es 2027.");continue}
+      var fa=pnum(row[map.fact]);
+      if(fa==null){res.skipped++;continue}
+      var v={fact:fa};
+      ["compras","personal","gestion","fin","alibio"].forEach(function(k){var n=map[k]==null?null:pnum(row[map[k]]);v[k]=n==null?0:n});
+      var key=id+"|"+pm.m;
+      if(seen[key]!=null){res.warns.push("Fila "+ln+": "+budget[id].name+" · "+MES[pm.m]+" duplicado; prevalece la última fila.");res.items[seen[key]]={id:id,m:pm.m,v:v}}
+      else{seen[key]=res.items.length;res.items.push({id:id,m:pm.m,v:v})}
+    }
+    break;
+  }
+  return res;
+}
+function readFile(file){
+  return new Promise(function(ok,ko){
+    var ext=(file.name.split(".").pop()||"").toLowerCase(),fr=new FileReader();
+    fr.onerror=function(){ko(new Error("No se pudo leer el archivo."))};
+    if(ext==="csv"||ext==="txt"||ext==="tsv"){fr.onload=function(){ok([parseCSV(String(fr.result))])};fr.readAsText(file,"utf-8")}
+    else if(ext==="xlsx"||ext==="xls"){
+      if(!window.XLSX){ko(new Error("El lector de Excel no está disponible aquí; guarda el archivo como CSV."));return}
+      fr.onload=function(){try{var wb=XLSX.read(fr.result,{type:"array"});ok(wb.SheetNames.map(function(n){return XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:true,defval:""})}))}catch(e){ko(new Error("No se pudo interpretar el Excel."))}};
+      fr.readAsArrayBuffer(file);
+    }else ko(new Error("Formato no admitido. Usa .csv o .xlsx."));
+  });
+}
+function templateCSV(){
+  var rows=[["negocio","mes","facturacion","compras","personal","gestion","financiero","alibio"]];
+  ids().forEach(function(id){for(var m=0;m<12;m++)rows.push([budget[id].name,"2027-"+(m<9?"0":"")+(m+1),"","","","","",""])});
+  var txt="\uFEFF"+rows.map(function(r){return r.join(";")}).join("\n");
+  if(dl)dl.save({filename:"plantilla-real-2027.csv",data:txt}).catch(function(){});
+}
+function closeImport(){var o=document.getElementById("ov");if(o)o.remove()}
+function openImport(){
+  closeImport();
+  var ov=document.createElement("div");ov.className="ov";ov.id="ov";
+  ov.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-label="Cargar datos reales"><h2>Cargar datos reales</h2><p>Sube un CSV o Excel con una fila por negocio y mes. Los meses que ya existan se sobrescriben; el resto se conserva.</p><div id="mb"></div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener("click",function(e){if(e.target===ov)closeImport()});
+  stepPick();
+}
+function mb(){return document.getElementById("mb")}
+function stepPick(msg){
+  var h='<label class="drop" id="dz"><input type="file" id="fi" accept=".csv,.xlsx,.xls,.txt" hidden><b>Elegir archivo</b> o arrastrarlo aquí<br><span style="font-size:12px">.csv · .xlsx</span></label>';
+  if(msg)h+='<div class="msg err">'+msg+'</div>';
+  h+='<div class="fmt"><b>Columnas:</b> negocio · mes (1–12, «Ene» o «2027-03») · facturacion · compras · personal · gestion · financiero · alibio. Importes en euros, con coma o punto decimal. Las filas sin facturación se ignoran.</div>';
+  h+='<div class="row">'+(dl?'<button class="btn" id="tpl">Descargar plantilla</button>':'')+'<button class="btn" id="cx">Cerrar</button></div>';
+  mb().innerHTML=h;
+  var fi=document.getElementById("fi"),dz=document.getElementById("dz");
+  fi.onchange=function(){if(fi.files[0])handle(fi.files[0])};
+  dz.ondragover=function(e){e.preventDefault();dz.classList.add("on")};
+  dz.ondragleave=function(){dz.classList.remove("on")};
+  dz.ondrop=function(e){e.preventDefault();dz.classList.remove("on");if(e.dataTransfer.files[0])handle(e.dataTransfer.files[0])};
+  document.getElementById("cx").onclick=closeImport;
+  var t=document.getElementById("tpl");if(t)t.onclick=templateCSV;
+}
+function handle(file){
+  readFile(file).then(function(sheets){
+    var r=analyse(sheets);
+    if(!r.found){stepPick("No encuentro las columnas negocio, mes y facturacion en el archivo.");return}
+    stepPreview(r,file.name);
+  }).catch(function(e){stepPick(e.message)});
+}
+function stepPreview(r,name){
+  var by={},order=[];
+  r.items.forEach(function(i){if(!by[i.id]){by[i.id]=[];order.push(i.id)}by[i.id].push(i)});
+  var h='<div class="note" style="margin-top:0">Archivo: <b>'+name+'</b></div>';
+  if(r.errors.length)h+='<div class="msg err"><b>'+r.errors.length+' fila(s) con error, no se cargarán:</b><ul>'+r.errors.slice(0,8).map(function(x){return "<li>"+x+"</li>"}).join("")+(r.errors.length>8?"<li>…</li>":"")+'</ul></div>';
+  if(r.warns.length)h+='<div class="msg wr"><ul>'+r.warns.slice(0,5).map(function(x){return "<li>"+x+"</li>"}).join("")+'</ul></div>';
+  if(r.skipped)h+='<div class="note">'+r.skipped+' fila(s) sin facturación omitidas.</div>';
+  if(!r.items.length){h+='<div class="msg err">No hay filas válidas para cargar.</div><div class="row"><button class="btn" id="bk">Volver</button></div>';mb().innerHTML=h;document.getElementById("bk").onclick=function(){stepPick()};return}
+  h+='<div class="tw"><table><thead><tr><th>Negocio</th><th>Meses</th><th>Facturación real</th><th>Ppto mismos meses</th><th>Sobrescribe</th></tr></thead><tbody>';
+  var over=0;
+  order.forEach(function(id){
+    var it=by[id],fr=0,fb=0,ov=0;
+    it.forEach(function(i){fr+=i.v.fact;fb+=(budget[id].fact&&budget[id].fact[i.m])||0;if(actuals[id]&&actuals[id].fact&&actuals[id].fact[i.m]!=null)ov++});
+    over+=ov;
+    var mm=it.map(function(i){return MES[i.m]}).join(", ");
+    h+='<tr><td>'+budget[id].name+'</td><td style="white-space:normal;text-align:left">'+mm+'</td><td>'+num(fr)+'</td><td>'+num(fb)+'</td><td>'+(ov?ov+" mes(es)":"–")+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="row"><button class="btn" id="bk">Elegir otro</button><button class="btn pri" id="go">Cargar '+r.items.length+' registros'+(over?" (sobrescribe "+over+")":"")+'</button></div><div id="st"></div>';
+  mb().innerHTML=h;
+  document.getElementById("bk").onclick=function(){stepPick()};
+  document.getElementById("go").onclick=function(){commit(r.items)};
+}
+function commit(items){
+  var go=document.getElementById("go"),st=document.getElementById("st");go.disabled=true;go.textContent="Cargando…";
+  var by={};items.forEach(function(i){(by[i.id]=by[i.id]||[]).push(i)});
+  var chain=Promise.resolve();
+  Object.keys(by).forEach(function(id){
+    chain=chain.then(function(){
+      var cur=actuals[id],doc={};
+      LINES.forEach(function(k){doc[k]=cur&&cur[k]?cur[k].slice():Array.apply(null,Array(12)).map(function(){return null})});
+      by[id].forEach(function(i){LINES.forEach(function(k){doc[k][i.m]=i.v[k]})});
+      return dbRef.doc("actuals/"+id).set(doc);
+    });
+  });
+  chain.then(function(){
+    var m=Object.assign({},meta||{});m.updated=new Date().toLocaleDateString("es-ES");
+    return dbRef.doc("meta/info").set(m);
+  }).then(function(){
+    mb().innerHTML='<div class="msg ok"><b>Datos cargados.</b> Ya aparecen junto al presupuesto con sus desviaciones.</div><div class="row"><button class="btn pri" id="cx">Cerrar</button></div>';
+    document.getElementById("cx").onclick=closeImport;
+  }).catch(function(e){
+    go.disabled=false;go.textContent="Reintentar";
+    st.innerHTML='<div class="msg err">No se pudo guardar'+(e&&e.code==="invalid_argument"?": no tienes permiso de escritura en estos datos.":".")+'</div>';
+  });
+}
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeImport()});
+
+/* ---------- Simulador de escenarios (por negocio) ---------- */
+var SHORT={fact:"ventas",compras:"compras",personal:"personal",gestion:"gestión",fin:"financieros",alibio:"serv. Alibio"};
+function sgn(v){return v>0?"+"+v+" %":(v<0?"−"+Math.abs(v)+" %":"0 %")}
+function esc(t){return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function opsIds(){return ids().filter(function(i){return budget[i].group!=="serv"})}
+function tabIds(){return S.simTab==="all"?opsIds():(S.simTab&&budget[S.simTab]?[S.simTab]:[])}
+function newEntry(d){var f={};LINES.forEach(function(k){f[k]=d});return {fact:0,compras:0,personal:0,gestion:0,fin:0,alibio:0,link:false,from:f}}
+function defFrom(){var l=through();return l>=0?Math.min(11,l+1):0}
+function ent(id){if(!S.sim[id])S.sim[id]=newEntry(defFrom());if(!S.sim[id].from)S.sim[id].from=newEntry(0).from;return S.sim[id]}
+function getFrom(id,k){var x=S.sim[id];return x?((x.from&&x.from[k])||0):defFrom()}
+function tabFrom(k){var t=tabIds();if(!t.length)return 0;return getFrom(t[0],k)}
+function tabFromAll(){var t=tabIds();if(!t.length)return 0;var v=getFrom(t[0],LINES[0]),mixed=false;t.forEach(function(id){LINES.forEach(function(k){if(getFrom(id,k)!==v)mixed=true})});return mixed?-1:v}
+function simVal(id,k){var x=S.sim[id];return x?(x[k]||0):0}
+function tabVal(k){var t=tabIds();if(!t.length)return {v:0,mixed:false};var v0=simVal(t[0],k),mixed=t.some(function(i){return simVal(i,k)!==v0});return {v:mixed?0:v0,mixed:mixed}}
+function tabLink(){var t=tabIds();return t.length>0&&t.every(function(i){return S.sim[i]&&S.sim[i].link})}
+function hasAdj(id){var x=S.sim[id];return !!x&&LINES.some(function(k){return x[k]})}
+function simAdj(id){var x=S.sim[id],o=[];if(!x)return o;LINES.forEach(function(k){if(x[k]){var f=(x.from&&x.from[k])||0;o.push(SHORT[k]+" "+sgn(x[k])+(f?" desde "+MES[f]:""))}});if(x.link&&x.fact)o.push("compras ligadas a ventas");return o}
+var MOPT=MES.map(function(m,i){return '<option value="'+i+'">'+m+'</option>'}).join("");
+function buildSim(){
+  var h='<p class="sd">Ajusta cada negocio por separado y elige desde qué mes se aplica cada ajuste: los cambios se suman en Grupo, Consolidado, Operaciones, Restaurantes y Distribución. «Todos» aplica el mismo ajuste a todos los negocios operativos (sin Alibio Gestión). No modifica los datos guardados.</p><div class="chips" id="stabs" style="flex-wrap:wrap"></div><div class="stitle" id="stitle"></div><div class="sfall"><label>⏱ Aplicar los ajustes desde <select id="sfall"></select> de 2027</label><span>Los meses anteriores conservan el presupuesto base: una subida decidida en marzo se aplica desde abril.</span></div><div class="sl-grid">';
+  SIMDEF.forEach(function(x){
+    h+='<div class="sl" id="sl-'+x[0]+'"><div class="sh"><span id="sn-'+x[0]+'">'+x[1]+'</span><b id="sv-'+x[0]+'">0 %</b></div><div class="sr"><button class="sb" data-sd="'+x[0]+'" data-dir="-1" aria-label="Restar 5 % a '+x[1]+'">−</button><input type="range" id="sr-'+x[0]+'" data-sim="'+x[0]+'" min="-30" max="30" step="5" value="0" aria-label="'+x[1]+'"><button class="sb" data-sd="'+x[0]+'" data-dir="1" aria-label="Sumar 5 % a '+x[1]+'">+</button></div><div class="sc"><span>−30 %</span><span>0</span><span>+30 %</span></div><div class="sf"><span>Aplicar desde</span><select data-sf="'+x[0]+'" aria-label="Aplicar desde, '+x[1]+'">'+MOPT+'</select></div></div>';
+  });
+  h+='</div><label class="lk"><input type="checkbox" id="sim-link"> Las compras acompañan a las ventas (suben o bajan con ellas)</label><div class="sd" id="shint" style="margin:8px 0 0"></div><div id="smatrix"></div>';
+  h+='<div class="sact"><button class="btn" id="sreset1">Restablecer selección</button><button class="btn" id="sreset">Restablecer todo</button><span id="sgrp" style="display:none;gap:8px;flex-wrap:wrap;align-items:center"><input type="text" id="sn" placeholder="Nombre del escenario" maxlength="40"><button class="btn" id="ssave">Guardar</button><select id="ssel" aria-label="Escenarios guardados"></select><button class="btn" id="sdel">Borrar</button></span></div><div id="smsg"></div>';
+  document.getElementById("simbody").innerHTML=h;
+  refreshSim();
+}
+function refreshSim(){
+  if(loaded.b&&S.simTab!=="all"&&(!S.simTab||!budget[S.simTab])&&ids().length)S.simTab=ids()[0];
+  var st=document.getElementById("stabs");
+  if(st){var h=chip("Todos a la vez","st","all",S.simTab);ids().forEach(function(id){h+=chip(esc(budget[id].name)+(hasAdj(id)?' <span style="color:var(--accent)">●</span>':""),"st",id,S.simTab)});st.innerHTML=h}
+  var isAl=S.simTab!=="all"&&budget[S.simTab]&&budget[S.simTab].group==="serv";
+  var tt=document.getElementById("stitle");
+  if(tt)tt.innerHTML=S.simTab==="all"?"Ajustando <b>todos los negocios operativos a la vez</b> (el mismo % en cada uno)":"Ajustando <b>solo "+esc(budget[S.simTab]?budget[S.simTab].name:"")+"</b>";
+  SIMDEF.forEach(function(x){
+    var tv=tabVal(x[0]),r=document.getElementById("sr-"+x[0]),b=document.getElementById("sv-"+x[0]),w=document.getElementById("sl-"+x[0]);
+    if(r)r.value=tv.v;
+    if(b){b.textContent=tv.mixed?"mixto":sgn(tv.v);b.className=(!tv.mixed&&tv.v>0)?"up":((!tv.mixed&&tv.v<0)?"dn":"")}
+    if(w&&x[0]==="alibio")w.style.display=isAl?"none":"";
+  });
+  var nf2=document.getElementById("sn-fact");if(nf2)nf2.textContent=isAl?"Ventas (servicios al grupo)":"Ventas";
+  SIMDEF.forEach(function(x){var q=document.querySelector('[data-sf="'+x[0]+'"]');if(q)q.value=tabFrom(x[0])});
+  var fa=document.getElementById("sfall");if(fa){var tv2=tabFromAll();fa.innerHTML=(tv2<0?'<option value="-1">varios</option>':"")+MOPT;fa.value=tv2}
+  var lk=document.getElementById("sim-link");if(lk){lk.checked=tabLink();lk.disabled=!!isAl}
+  var hint=document.getElementById("shint");if(hint)hint.textContent=isAl?"Alibio Gestión factura al grupo sus servicios. Si cambias «Servicios Grupo Alibio» en los negocios, ajusta aquí sus ventas en la misma proporción para que el intragrupo cuadre.":"";
+  var mx=document.getElementById("smatrix");
+  if(mx){
+    if(!simOn())mx.innerHTML="";
+    else{
+      var t='<div class="tw" style="margin-top:12px"><table><thead><tr><th>Ajustes por negocio</th>'+SIMDEF.map(function(x){return "<th>"+SHORT[x[0]]+"</th>"}).join("")+'</tr></thead><tbody>';
+      ids().forEach(function(id){if(!hasAdj(id))return;t+='<tr><td>'+esc(budget[id].name)+'</td>'+SIMDEF.map(function(x){var v=simVal(id,x[0]),fm=getFrom(id,x[0]);return '<td class="'+(v>0?"up":(v<0?"dn":""))+'">'+(v?sgn(v)+(fm?'<br><small>desde '+MES[fm]+'</small>':""):"–")+'</td>'}).join("")+'</tr>'});
+      mx.innerHTML=t+'</tbody></table></div>';
+    }
+  }
+  var bd=document.getElementById("simbadge");if(bd)bd.innerHTML=simOn()?'<span class="on">Escenario activo</span>':"";
+  var g=document.getElementById("sgrp");if(g)g.style.display=(canW&&dbRef)?"inline-flex":"none";
+  var sel=document.getElementById("ssel");
+  if(sel){var cur=sel.value,o='<option value="">Escenarios guardados…</option>';
+    Object.keys(scen).sort(function(a,b){return (scen[a].at||0)-(scen[b].at||0)}).forEach(function(id){o+='<option value="'+id+'">'+esc(scen[id].name||id)+'</option>'});
+    sel.innerHTML=o;if(scen[cur])sel.value=cur}
+}
+function simMsg(t,err){var m=document.getElementById("smsg");if(m)m.innerHTML=t?'<div class="msg '+(err?"err":"ok")+'">'+t+'</div>':""}
+function setSim(k,v){
+  v=Math.max(-30,Math.min(30,v));
+  tabIds().forEach(function(id){var x=ent(id);x[k]=v});
+  refreshSim();render();
+}
+function simCard(c){
+  var el=S.scope==="consolidado",B0=build(c.list,"b",el,true),n=0,adj=[];
+  c.list.forEach(function(id){var a=simAdj(id);if(a.length){n++;adj.push('<li><b>'+esc(budget[id].name)+':</b> '+a.join(", ")+'</li>')}});
+  var h='<div class="card scard"><h2><span>Escenario vs. presupuesto base</span><span class="on" style="background:var(--warn-bg);color:var(--warn);border-radius:999px;font-size:11px;padding:2px 9px">'+n+' negocio'+(n===1?"":"s")+' ajustado'+(n===1?"":"s")+'</span></h2>';
+  h+='<div class="note" style="margin-top:0">'+scopeName(S.scope)+' · '+periodLabel(S.period)+'. Las tarjetas, gráficos y desviaciones de esta página usan ya el presupuesto del escenario.</div>';
+  if(adj.length)h+='<ul class="adj">'+adj.join("")+'</ul>';
+  else h+='<div class="note">Los ajustes activos no afectan a los negocios de este ámbito.</div>';
+  h+='<div class="tw"><table><thead><tr><th>Concepto</th><th>Base</th><th>Escenario</th><th>Δ €</th><th>Δ %</th></tr></thead><tbody>';
+  ROWS.forEach(function(r){
+    var b=sumIdx(B0[r.k],c.use),e=sumIdx(c.B[r.k],c.use),d=e-b,cl=Math.abs(d)<0.5?"":(fav(r.t,d)==="good"?"up":"dn");
+    h+='<tr'+(r.c?' class="'+r.c+'"':"")+'><td>'+r.l+'</td><td>'+num(b)+'</td><td>'+num(e)+'</td><td class="'+cl+'">'+dnum(d)+'</td><td class="'+cl+'">'+(b?dpct(d/Math.abs(b)*100):"–")+'</td></tr>';
+  });
+  var fb=sumIdx(B0.fact,c.use),fe=sumIdx(c.B.fact,c.use),tb=sumIdx(B0.total,c.use),te=sumIdx(c.B.total,c.use);
+  if(fb&&fe)h+='<tr><td>Margen total s/ ventas</td><td>'+pct(tb/fb*100)+'</td><td>'+pct(te/fe*100)+'</td><td colspan="2">'+pfs.format(te/fe*100-tb/fb*100)+' pp</td></tr>';
+  return h+'</tbody></table></div></div>';
+}
+function simEvents(){
+  var box=document.getElementById("simbody");
+  box.addEventListener("input",function(e){var k=e.target.dataset&&e.target.dataset.sim;if(k)setSim(k,+e.target.value)});
+  box.addEventListener("change",function(e){
+    if(e.target.dataset&&e.target.dataset.sf){var fk=e.target.dataset.sf,fv=+e.target.value;tabIds().forEach(function(id){ent(id).from[fk]=fv});refreshSim();render();return}
+    if(e.target.id==="sfall"){var av=+e.target.value;if(av>=0){tabIds().forEach(function(id){var x=ent(id);LINES.forEach(function(k){x.from[k]=av})});refreshSim();render()}return}
+    if(e.target.id==="sim-link"){var on=e.target.checked;tabIds().forEach(function(id){ent(id).link=on});refreshSim();render()}
+    if(e.target.id==="ssel"&&e.target.value){
+      var sc=scen[e.target.value];
+      if(sc&&sc.sim){
+        var ns={};
+        if(sc.sim.fact!==undefined){opsIds().forEach(function(id){ns[id]=Object.assign(newEntry(0),sc.sim)})}
+        else Object.keys(sc.sim).forEach(function(id){if(budget[id])ns[id]=Object.assign(newEntry(0),sc.sim[id])});
+        S.sim=ns;refreshSim();render();simMsg("Escenario «"+esc(sc.name)+"» cargado.");
+      }
+    }
+  });
+  box.addEventListener("click",function(e){
+    var t=e.target.closest("button");if(!t)return;
+    if(t.dataset.st){S.simTab=t.dataset.st;refreshSim();return}
+    if(t.dataset.sd){var cv=tabVal(t.dataset.sd);setSim(t.dataset.sd,cv.v+5*(+t.dataset.dir));return}
+    if(t.id==="sreset1"){tabIds().forEach(function(id){delete S.sim[id]});refreshSim();render();simMsg("");return}
+    if(t.id==="sreset"){S.sim={};refreshSim();render();simMsg("");return}
+    if(t.id==="ssave"){
+      var nm=(document.getElementById("sn").value||"").trim();
+      if(!nm){simMsg("Ponle un nombre al escenario.",true);return}
+      if(!simOn()){simMsg("Mueve algún deslizador antes de guardar.",true);return}
+      var id="s"+Date.now(),sim={};
+      Object.keys(S.sim).forEach(function(k){if(hasAdj(k))sim[k]=Object.assign({},S.sim[k])});
+      dbRef.doc("scenarios/"+id).set({name:nm,at:Date.now(),sim:sim}).then(function(){document.getElementById("sn").value="";simMsg("Escenario guardado.")}).catch(function(){simMsg("No se pudo guardar el escenario.",true)});
+      return;
+    }
+    if(t.id==="sdel"){
+      var v=document.getElementById("ssel").value;if(!v){simMsg("Elige primero un escenario guardado.",true);return}
+      dbRef.doc("scenarios/"+v).delete().then(function(){simMsg("Escenario borrado.")}).catch(function(){simMsg("No se pudo borrar.",true)});
+    }
+  });
+}
+
+function chip(label,attr,val,cur,extra){
+  return '<button class="chip'+(extra||"")+'" data-'+attr+'="'+val+'" aria-pressed="'+(cur===val)+'">'+label+'</button>';
+}
+
+function render(){
+  var app=document.getElementById("app");
+  if(!dbOK){app.innerHTML='<div class="empty">Los datos compartidos no están disponibles en esta vista.</div>';return}
+  if(!loaded.b){return}
+  if(!ids().length){app.innerHTML='<div class="empty">El presupuesto todavía no está cargado.</div>';return}
+  if(!budget[S.scope]&&["grupo","consolidado","operaciones","restaurantes","distribucion"].indexOf(S.scope)<0)S.scope="grupo";
+  var c=ctx(S.scope),last=through();
+  var st=document.getElementById("status");
+  st.innerHTML='<span class="badge'+(last>=0?" on":"")+'"><i></i>'+(last>=0?"Real cargado hasta "+MESL[last]+" 2027":"Solo presupuesto · sin datos reales aún")+'</span>'+(canW&&dbRef?' <button class="btn" id="imp" style="margin-left:8px">Cargar datos reales</button>':'');
+
+  var h='<div class="controls"><div class="lbl">Ámbito</div><div class="chips">';
+  [["grupo","Grupo"],["consolidado","Consolidado"],["operaciones","Operaciones"],["restaurantes","Restaurantes"],["distribucion","Distribución"]].forEach(function(x){h+=chip(x[1],"scope",x[0],S.scope)});
+  h+='</div><div class="chips" style="margin-top:6px">';
+  ids().forEach(function(id){h+=chip(budget[id].name,"scope",id,S.scope)});
+  h+='</div><div class="lbl">Periodo</div><div class="chips">';
+  [["ytd","Acumulado"],["year","Año"],["q1","T1"],["q2","T2"],["q3","T3"],["q4","T4"]].forEach(function(x){h+=chip(x[1],"period",x[0],S.period)});
+  h+='<select class="chip" id="msel" aria-label="Mes" aria-pressed="'+(S.period[0]==="m")+'" style="'+(S.period[0]==="m"?"background:var(--ink);color:var(--bg)":"")+'"><option value="">Mes…</option>';
+  MES.forEach(function(m,i){h+='<option value="m'+i+'"'+(S.period==="m"+i?" selected":"")+'>'+m+'</option>'});
+  h+='</select></div></div>';
+  var ctl=document.getElementById("ctl");ctl.innerHTML=h;h="";
+
+  if(!c.hasAny)h+='<div class="banner">Aún no hay datos reales. Cuando se carguen aparecerán junto al presupuesto, con sus desviaciones.</div>';
+  else if(c.M.length!==c.use.length||!c.cmp)h+='<div class="note">Periodo con real parcial: se compara solo '+(c.cmp?c.use.map(function(i){return MES[i]}).join(", "):"")+' (meses con datos reales).</div>';
+  else h+='<div class="note">'+scopeName(S.scope)+' · '+periodLabel(S.period)+' · comparando '+c.use.length+' '+(c.use.length===1?"mes":"meses")+' con datos reales.</div>';
+
+  if(S.scope==="grupo")h+='<div class="note">Incluye Alibio Gestión: sus servicios intragrupo ('+eur(elimTotal())+') suman a la facturación del grupo y restan como gasto en cada negocio. «Consolidado» los elimina; el resultado total es el mismo.</div>';
+  if(S.scope==="consolidado")h+='<div class="note">Vista consolidada: se eliminan los servicios intragrupo de Alibio Gestión ('+eur(elimTotal())+' de facturación y de gasto). El resultado total coincide con el Excel.</div>';
+  var f=rowVals(c,"fact"),d=rowVals(c,"directo"),t=rowVals(c,"total");
+  var mg={b:f.b?t.b/f.b*100:null,a:(f.a&&t.a!=null)?t.a/f.a*100:null};
+  h+='<div class="grid kpis">'+kpiCard("Facturación",f)+kpiCard("Resultado directo",d)+kpiCard("Resultado total",t)+kpiCard("Margen total s/ ventas",mg,true)+'</div>';
+  app.innerHTML=h;h="";
+  if(simOn())h+=simCard(c);
+
+  h+='<div class="two"><div class="card"><h2><span>Evolución mensual</span><span class="legend"><span class="lb">Ppto</span><span class="la">Real</span></span></h2><div class="chips" style="margin-bottom:8px">';
+  [["fact","Facturación"],["total","Resultado total"],["personal","Personal"],["compras","Compras"]].forEach(function(x){h+=chip(x[1],"metric",x[0],S.metric)});
+  h+='</div>'+chartSVG(c)+monthDetail(c)+'</div>'+alertsCard(c)+'</div>';
+
+  h+='<div class="two"><div class="card"><h2>Cuenta de resultados · '+periodLabel(S.period)+'</h2>'+summaryTable(c)+'</div>'+(c.list.length>1?bizList(c):coverage())+'</div>';
+
+  h+='<div class="card" style="margin-top:12px"><h2><span>Detalle mensual</span><span class="chips">'+chip("Presupuesto","mode","b",S.mode)+chip("Real","mode","a",S.mode)+chip("Desviación","mode","d",S.mode)+'</span></h2>'+monthlyTable(c)+'</div>';
+  if(c.list.length>1)h+='<div style="margin-top:12px">'+coverage()+'</div>';
+  if(dl)h+='<div style="margin-top:12px"><button class="btn" id="exp">Exportar CSV (ámbito actual)</button></div>';
+  document.getElementById("app2").innerHTML=h;
+
+  var chips=ctl.querySelector(".controls .chips");
+  var sc=ctl.querySelector('[data-scope][aria-pressed="true"]');if(sc&&app._sx==null){app._sx=1;sc.scrollIntoView({inline:"center",block:"nearest"})}
+  var foot=document.getElementById("foot");
+  foot.textContent="Fuente del presupuesto: "+((meta&&meta.source)||"libro de tesorería oct. 2026 – dic. 2027")+(meta&&meta.updated?" · última actualización de datos: "+meta.updated:"")+". Desviación = Real − Presupuesto; en verde la favorable, en rojo la desfavorable.";
+}
+
+document.addEventListener("click",function(e){
+  var t=e.target.closest("[data-scope],[data-period],[data-metric],[data-mode],[data-m],#exp,#imp");
+  if(!t)return;
+  if(t.id==="exp"){exportCSV();return}
+  if(t.id==="imp"){openImport();return}
+  if(t.dataset.scope){S.scope=t.dataset.scope;if(budget[S.scope]){S.simTab=S.scope;refreshSim()}}
+  else if(t.dataset.period){S.period=t.dataset.period}
+  else if(t.dataset.metric){S.metric=t.dataset.metric}
+  else if(t.dataset.mode){S.mode=t.dataset.mode}
+  else if(t.dataset.m!=null){S.month=S.month===+t.dataset.m?null:+t.dataset.m}
+  var y=window.scrollY,cs=document.querySelector(".controls .chips");var sx=cs?cs.scrollLeft:0;
+  render();
+  var ncs=document.querySelector(".controls .chips");if(ncs)ncs.scrollLeft=sx;
+  window.scrollTo(0,y);
+});
+document.addEventListener("change",function(e){
+  if(e.target.id==="msel"&&e.target.value){S.period=e.target.value;render()}
+});
+
+function snapMap(snap){var o={};snap.docs.forEach(function(d){o[d.id]=d.data()});return o}
+function fail(){dbOK=false;render()}
+buildSim();simEvents();
+document.getElementById("simfab").addEventListener("click",function(){var b=document.getElementById("simbox");b.open=true;b.scrollIntoView({behavior:"smooth",block:"start"})});
+if(!window.claude||!window.claude.use){dbOK=false;render()}
+else{
+  window.claude.use("user").then(function(u){return u?u.can("data.write"):null}).then(function(v){canW=v!==false;refreshSim();if(loaded.b)render()}).catch(function(){});
+  window.claude.use("downloads").then(function(d){dl=d;if(loaded.b)render()}).catch(function(){});
+  window.claude.use("db").then(function(db){
+    if(!db){fail();return}
+    dbRef=db;refreshSim();
+    db.collection("scenarios").onSnapshot(function(s){scen=snapMap(s);refreshSim()},function(){});
+    db.collection("budget").onSnapshot(function(s){budget=snapMap(s);loaded.b=true;refreshSim();render()},fail);
+    db.collection("actuals").onSnapshot(function(s){actuals=snapMap(s);loaded.a=true;render()},function(){});
+    db.doc("meta/info").onSnapshot(function(s){meta=s.exists?s.data():null;render()},function(){});
+  }).catch(fail);
+}
+})();
+</script>
+</body>
+</html>
