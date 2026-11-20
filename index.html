@@ -180,6 +180,22 @@ tr.strong td{border-top:2px solid var(--accent)}
 .sfall select,.sf select{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:4px 8px;font:inherit;font-size:13px}
 .sf{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);margin-top:6px}
 footer{color:var(--ink2);font-size:12px;margin-top:18px}
+/* ---- Nuevo local de Caleta (Diluvio) ---- */
+.dil{scroll-margin-top:190px;border:2px solid var(--good);box-shadow:0 6px 22px rgba(5,150,105,.15)}
+.dil>summary{background:var(--good-bg);color:var(--good)}
+.dil>summary .tg{background:var(--good);color:#fff}
+.dil .on{background:var(--good);color:#fff}
+#dilbody{padding:0 14px 14px}
+#dilbody .sd{margin:0 0 10px;color:var(--ink2);font-size:13px}
+.dctl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:0 0 12px;padding:8px 12px;border-radius:10px;background:var(--good-bg);color:var(--good);font-size:13px;font-weight:600}
+.dctl label{display:flex;align-items:center;gap:6px}
+.dctl select,.dctl input,.dtab input{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:4px 8px;font:inherit;font-size:13px}
+.dctl input{width:80px}
+.dtab input{width:70px;text-align:right;padding:4px 6px}
+.dtab td.off input{opacity:.35}
+.dtab th.off{opacity:.45}
+.dprev{margin-top:10px;font-size:13px;background:var(--soft);border-radius:8px;padding:8px 10px}
+
 </style>
 </head>
 <body>
@@ -192,6 +208,7 @@ footer{color:var(--ink2);font-size:12px;margin-top:18px}
   <div id="ctl"></div>
   <div id="app"><div class="empty">Cargando presupuesto…</div></div>
   <details class="sim" id="simbox"><summary><span>🎚️ Simulador de escenarios · sube o baja ventas y costes de 5 en 5 %</span><span id="simbadge"></span><span class="tg"></span></summary><div id="simbody"></div></details>
+  <div id="dilwrap"></div>
   <div id="app2"></div>
   <footer id="foot"></footer>
   <button class="fab" id="simfab" aria-label="Ir al simulador de escenarios">🎚️ Simulador</button>
@@ -203,7 +220,6 @@ footer{color:var(--ink2);font-size:12px;margin-top:18px}
 var MES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 var MESL=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 var LINES=["fact","compras","personal","gestion","fin","alibio"];
-var ALLK=LINES.concat(["margen"]);
 var ROWS=[
  {k:"fact",l:"Facturación",t:"inc"},
  {k:"compras",l:"Compras",t:"cost"},
@@ -219,17 +235,13 @@ var ROWMAP={};ROWS.forEach(function(r){ROWMAP[r.k]=r});
 var budget={},actuals={},meta=null,loaded={b:false,a:false},dbOK=true,dl=null,dbRef=null,canW=false,localMode=false;
 var S={scope:"grupo",period:"ytd",metric:"fact",mode:"b",month:null,sim:{},simTab:null},scen={};
 var SIMDEF=[["fact","Ventas de los negocios"],["compras","Compras"],["personal","Personal"],["gestion","Otros gastos de gestión"],["fin","Gastos financieros"],["alibio","Servicios Grupo Alibio"]];
-function simOn(){return Object.keys(S.sim).some(function(id){return ALLK.some(function(k){return S.sim[id]&&S.sim[id][k]})})}
+function simOn(){return Object.keys(S.sim).some(function(id){return LINES.some(function(k){return S.sim[id]&&S.sim[id][k]})})}
 function fac(k,id,kind,m){
   if(kind!=="b")return 1;
   var sm=S.sim[id];if(!sm)return 1;
   var fr=sm.from||{};
   var f=m>=(fr[k]||0)?1+(sm[k]||0)/100:1;
   if(k==="compras"&&sm.link&&m>=(fr.fact||0))f*=1+(sm.fact||0)/100;
-  if(k==="fact"&&id==="st3"&&sm.margen&&m>=(fr.margen||0)){
-    var bb=budget[id],fb=bb.fact[m],cb=bb.compras[m];
-    if(fb>0&&cb>0){var m0=1-cb/fb,m1=m0+sm.margen/100;if(m1<1)f*=(1-m0)/(1-m1)}
-  }
   return f;
 }
 
@@ -251,10 +263,11 @@ function scopeIds(s){
   if(s==="operaciones")return all.filter(function(i){return budget[i].group!=="serv"});
   if(s==="restaurantes")return all.filter(function(i){return budget[i].group==="rest"});
   if(s==="distribucion")return all.filter(function(i){return budget[i].group==="dist"});
+  if(s==="caletatot")return all.filter(function(i){return i==="caleta"||i==="diluvio"});
   return budget[s]?[s]:[];
 }
 function scopeName(s){
-  var m={grupo:"Grupo (incluye Alibio Gestión)",consolidado:"Grupo consolidado (sin intragrupo)",operaciones:"Operaciones (sin Alibio Gestión)",restaurantes:"Restaurantes",distribucion:"Distribución"};
+  var m={grupo:"Grupo (incluye Alibio Gestión)",consolidado:"Grupo consolidado (sin intragrupo)",operaciones:"Operaciones (sin Alibio Gestión)",restaurantes:"Restaurantes",distribucion:"Distribución",caletatot:"Caleta + Diluvio"};
   return m[s]||(budget[s]?budget[s].name:s);
 }
 function derive(o){
@@ -624,12 +637,12 @@ function commit(items){
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeImport()});
 
 /* ---------- Simulador de escenarios (por negocio) ---------- */
-var SHORT={fact:"ventas",compras:"compras",personal:"personal",gestion:"gestión",fin:"financieros",alibio:"serv. Alibio",margen:"margen bruto ST3"};
+var SHORT={fact:"ventas",compras:"compras",personal:"personal",gestion:"gestión",fin:"financieros",alibio:"serv. Alibio"};
 function sgn(v){return v>0?"+"+v+" %":(v<0?"−"+Math.abs(v)+" %":"0 %")}
 function esc(t){return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function opsIds(){return ids().filter(function(i){return budget[i].group!=="serv"})}
 function tabIds(){return S.simTab==="all"?opsIds():(S.simTab&&budget[S.simTab]?[S.simTab]:[])}
-function newEntry(d){var f={};ALLK.forEach(function(k){f[k]=d});return {fact:0,compras:0,personal:0,gestion:0,fin:0,alibio:0,margen:0,link:false,from:f}}
+function newEntry(d){var f={};LINES.forEach(function(k){f[k]=d});return {fact:0,compras:0,personal:0,gestion:0,fin:0,alibio:0,link:false,from:f}}
 function defFrom(){var l=through();return l>=0?Math.min(11,l+1):0}
 function ent(id){if(!S.sim[id])S.sim[id]=newEntry(defFrom());if(!S.sim[id].from)S.sim[id].from=newEntry(0).from;return S.sim[id]}
 function getFrom(id,k){var x=S.sim[id];return x?((x.from&&x.from[k])||0):defFrom()}
@@ -638,15 +651,15 @@ function tabFromAll(){var t=tabIds();if(!t.length)return 0;var v=getFrom(t[0],LI
 function simVal(id,k){var x=S.sim[id];return x?(x[k]||0):0}
 function tabVal(k){var t=tabIds();if(!t.length)return {v:0,mixed:false};var v0=simVal(t[0],k),mixed=t.some(function(i){return simVal(i,k)!==v0});return {v:mixed?0:v0,mixed:mixed}}
 function tabLink(){var t=tabIds();return t.length>0&&t.every(function(i){return S.sim[i]&&S.sim[i].link})}
-function hasAdj(id){var x=S.sim[id];return !!x&&ALLK.some(function(k){return x[k]})}
-function simAdj(id){var x=S.sim[id],o=[];if(!x)return o;ALLK.forEach(function(k){if(x[k]){var f=(x.from&&x.from[k])||0;o.push(SHORT[k]+" "+(k==="margen"?(x[k]>0?"+":"")+x[k]+" pp":sgn(x[k]))+(f?" desde "+MES[f]:""))}});if(x.link&&x.fact)o.push("compras ligadas a ventas");return o}
+function hasAdj(id){var x=S.sim[id];return !!x&&LINES.some(function(k){return x[k]})}
+function simAdj(id){var x=S.sim[id],o=[];if(!x)return o;LINES.forEach(function(k){if(x[k]){var f=(x.from&&x.from[k])||0;o.push(SHORT[k]+" "+sgn(x[k])+(f?" desde "+MES[f]:""))}});if(x.link&&x.fact)o.push("compras ligadas a ventas");return o}
 var MOPT=MES.map(function(m,i){return '<option value="'+i+'">'+m+'</option>'}).join("");
 function buildSim(){
   var h='<p class="sd">Ajusta cada negocio por separado y elige desde qué mes se aplica cada ajuste: los cambios se suman en Grupo, Consolidado, Operaciones, Restaurantes y Distribución. «Todos» aplica el mismo ajuste a todos los negocios operativos (sin Alibio Gestión). No modifica los datos guardados.</p><div class="chips" id="stabs" style="flex-wrap:wrap"></div><div class="stitle" id="stitle"></div><div class="sfall"><label>⏱ Aplicar los ajustes desde <select id="sfall"></select> de 2027</label><span>Los meses anteriores conservan el presupuesto base: una subida decidida en marzo se aplica desde abril.</span></div><div class="sl-grid">';
   SIMDEF.forEach(function(x){
-    h+='<div class="sl" id="sl-'+x[0]+'"><div class="sh"><span id="sn-'+x[0]+'">'+x[1]+'</span><b id="sv-'+x[0]+'">0 %</b></div><div class="sr"><button class="sb" data-sd="'+x[0]+'" data-dir="-1" aria-label="Restar 5 % a '+x[1]+'">−</button><input type="range" id="sr-'+x[0]+'" data-sim="'+x[0]+'" min="-50" max="50" step="5" value="0" aria-label="'+x[1]+'"><button class="sb" data-sd="'+x[0]+'" data-dir="1" aria-label="Sumar 5 % a '+x[1]+'">+</button></div><div class="sc"><span>−50 %</span><span>0</span><span>+50 %</span></div><div class="sf"><span>Aplicar desde</span><select data-sf="'+x[0]+'" aria-label="Aplicar desde, '+x[1]+'">'+MOPT+'</select></div></div>';
+    h+='<div class="sl" id="sl-'+x[0]+'"><div class="sh"><span id="sn-'+x[0]+'">'+x[1]+'</span><b id="sv-'+x[0]+'">0 %</b></div><div class="sr"><button class="sb" data-sd="'+x[0]+'" data-dir="-1" aria-label="Restar 5 % a '+x[1]+'">−</button><input type="range" id="sr-'+x[0]+'" data-sim="'+x[0]+'" min="-30" max="30" step="5" value="0" aria-label="'+x[1]+'"><button class="sb" data-sd="'+x[0]+'" data-dir="1" aria-label="Sumar 5 % a '+x[1]+'">+</button></div><div class="sc"><span>−30 %</span><span>0</span><span>+30 %</span></div><div class="sf"><span>Aplicar desde</span><select data-sf="'+x[0]+'" aria-label="Aplicar desde, '+x[1]+'">'+MOPT+'</select></div></div>';
   });
-  h+='</div><div id="sxst3" style="display:none"><div class="stitle">ST3: margen bruto (referencia 28 %)</div><div class="sl" id="sl-margen"><div class="sh"><span>Margen bruto de ST3</span><b id="sv-margen">28 %</b></div><div class="sr"><button class="sb" data-sd="margen" data-dir="-1" data-step="1" aria-label="Restar 1 pp al margen">−</button><input type="range" id="sr-margen" data-sim="margen" min="-20" max="20" step="1" value="0" aria-label="Margen bruto de ST3"><button class="sb" data-sd="margen" data-dir="1" data-step="1" aria-label="Sumar 1 pp al margen">+</button></div><div class="sc"><span>8 %</span><span>28 %</span><span>48 %</span></div><div class="sf"><span>Aplicar desde</span><select data-sf="margen" aria-label="Aplicar desde, margen de ST3">'+MOPT+'</select></div></div><p class="sd" style="margin:8px 0 0">El margen cambia el precio de venta de ST3 con las mismas compras del Excel: +1 pp sube la facturación lo necesario para ganar un punto de margen. El 28 % es la referencia; en el Excel el margen real es del 25 %.</p></div><label class="lk"><input type="checkbox" id="sim-link"> Las compras acompañan a las ventas (suben o bajan con ellas)</label><div class="sd" id="shint" style="margin:8px 0 0"></div><div id="smatrix"></div>';
+  h+='</div><label class="lk"><input type="checkbox" id="sim-link"> Las compras acompañan a las ventas (suben o bajan con ellas)</label><div class="sd" id="shint" style="margin:8px 0 0"></div><div id="smatrix"></div>';
   h+='<div class="sact"><button class="btn" id="sreset1">Restablecer selección</button><button class="btn" id="sreset">Restablecer todo</button><span id="sgrp" style="display:none;gap:8px;flex-wrap:wrap;align-items:center"><input type="text" id="sn" placeholder="Nombre del escenario" maxlength="40"><button class="btn" id="ssave">Guardar</button><select id="ssel" aria-label="Escenarios guardados"></select><button class="btn" id="sdel">Borrar</button></span></div><div id="smsg"></div>';
   document.getElementById("simbody").innerHTML=h;
   refreshSim();
@@ -665,10 +678,7 @@ function refreshSim(){
     if(w&&x[0]==="alibio")w.style.display=isAl?"none":"";
   });
   var nf2=document.getElementById("sn-fact");if(nf2)nf2.textContent=isAl?"Ventas (servicios al grupo)":"Ventas";
-  var sxs=document.getElementById("sxst3");if(sxs)sxs.style.display=S.simTab==="st3"?"":"none";
-  var tvm=tabVal("margen"),rm=document.getElementById("sr-margen"),bm=document.getElementById("sv-margen");
-  if(rm)rm.value=tvm.v;if(bm){bm.textContent=(28+tvm.v)+" %";bm.className=tvm.v>0?"up":(tvm.v<0?"dn":"")}
-  ALLK.forEach(function(k){var q=document.querySelector('[data-sf="'+k+'"]');if(q)q.value=tabFrom(k)});
+  SIMDEF.forEach(function(x){var q=document.querySelector('[data-sf="'+x[0]+'"]');if(q)q.value=tabFrom(x[0])});
   var fa=document.getElementById("sfall");if(fa){var tv2=tabFromAll();fa.innerHTML=(tv2<0?'<option value="-1">varios</option>':"")+MOPT;fa.value=tv2}
   var lk=document.getElementById("sim-link");if(lk){lk.checked=tabLink();lk.disabled=!!isAl}
   var hint=document.getElementById("shint");if(hint)hint.textContent=isAl?"Alibio Gestión factura al grupo sus servicios. Si cambias «Servicios Grupo Alibio» en los negocios, ajusta aquí sus ventas en la misma proporción para que el intragrupo cuadre.":"";
@@ -676,8 +686,8 @@ function refreshSim(){
   if(mx){
     if(!simOn())mx.innerHTML="";
     else{
-      var t='<div class="tw" style="margin-top:12px"><table><thead><tr><th>Ajustes por negocio</th>'+ALLK.map(function(k){return "<th>"+SHORT[k]+"</th>"}).join("")+'</tr></thead><tbody>';
-      ids().forEach(function(id){if(!hasAdj(id))return;t+='<tr><td>'+esc(budget[id].name)+'</td>'+ALLK.map(function(k){var v=simVal(id,k),fm=getFrom(id,k);return '<td class="'+(v>0?"up":(v<0?"dn":""))+'">'+(v?(k==="margen"?(v>0?"+":"")+v+" pp":sgn(v))+(fm?'<br><small>desde '+MES[fm]+'</small>':""):"–")+'</td>'}).join("")+'</tr>'});
+      var t='<div class="tw" style="margin-top:12px"><table><thead><tr><th>Ajustes por negocio</th>'+SIMDEF.map(function(x){return "<th>"+SHORT[x[0]]+"</th>"}).join("")+'</tr></thead><tbody>';
+      ids().forEach(function(id){if(!hasAdj(id))return;t+='<tr><td>'+esc(budget[id].name)+'</td>'+SIMDEF.map(function(x){var v=simVal(id,x[0]),fm=getFrom(id,x[0]);return '<td class="'+(v>0?"up":(v<0?"dn":""))+'">'+(v?sgn(v)+(fm?'<br><small>desde '+MES[fm]+'</small>':""):"–")+'</td>'}).join("")+'</tr>'});
       mx.innerHTML=t+'</tbody></table></div>';
     }
   }
@@ -690,7 +700,7 @@ function refreshSim(){
 }
 function simMsg(t,err){var m=document.getElementById("smsg");if(m)m.innerHTML=t?'<div class="msg '+(err?"err":"ok")+'">'+t+'</div>':""}
 function setSim(k,v){
-  var lim=k==="margen"?20:50;v=Math.max(-lim,Math.min(lim,v));
+  v=Math.max(-30,Math.min(30,v));
   tabIds().forEach(function(id){var x=ent(id);x[k]=v});
   refreshSim();render();
 }
@@ -715,7 +725,7 @@ function simEvents(){
   box.addEventListener("input",function(e){var k=e.target.dataset&&e.target.dataset.sim;if(k)setSim(k,+e.target.value)});
   box.addEventListener("change",function(e){
     if(e.target.dataset&&e.target.dataset.sf){var fk=e.target.dataset.sf,fv=+e.target.value;tabIds().forEach(function(id){ent(id).from[fk]=fv});refreshSim();render();return}
-    if(e.target.id==="sfall"){var av=+e.target.value;if(av>=0){tabIds().forEach(function(id){var x=ent(id);ALLK.forEach(function(k){x.from[k]=av})});refreshSim();render()}return}
+    if(e.target.id==="sfall"){var av=+e.target.value;if(av>=0){tabIds().forEach(function(id){var x=ent(id);LINES.forEach(function(k){x.from[k]=av})});refreshSim();render()}return}
     if(e.target.id==="sim-link"){var on=e.target.checked;tabIds().forEach(function(id){ent(id).link=on});refreshSim();render()}
     if(e.target.id==="ssel"&&e.target.value){
       var sc=scen[e.target.value];
@@ -730,7 +740,7 @@ function simEvents(){
   box.addEventListener("click",function(e){
     var t=e.target.closest("button");if(!t)return;
     if(t.dataset.st){S.simTab=t.dataset.st;refreshSim();return}
-    if(t.dataset.sd){var cv=tabVal(t.dataset.sd);setSim(t.dataset.sd,cv.v+((+t.dataset.step)||5)*(+t.dataset.dir));return}
+    if(t.dataset.sd){var cv=tabVal(t.dataset.sd);setSim(t.dataset.sd,cv.v+5*(+t.dataset.dir));return}
     if(t.id==="sreset1"){tabIds().forEach(function(id){delete S.sim[id]});refreshSim();render();simMsg("");return}
     if(t.id==="sreset"){S.sim={};refreshSim();render();simMsg("");return}
     if(t.id==="ssave"){
@@ -758,7 +768,7 @@ function render(){
   if(!dbOK){app.innerHTML='<div class="empty">Los datos compartidos no están disponibles en esta vista.</div>';return}
   if(!loaded.b){return}
   if(!ids().length){app.innerHTML='<div class="empty">El presupuesto todavía no está cargado.</div>';return}
-  if(!budget[S.scope]&&["grupo","consolidado","operaciones","restaurantes","distribucion"].indexOf(S.scope)<0)S.scope="grupo";
+  if(!budget[S.scope]&&["grupo","consolidado","operaciones","restaurantes","distribucion","caletatot"].indexOf(S.scope)<0)S.scope="grupo";
   var c=ctx(S.scope),last=through();
   var st=document.getElementById("status");
   st.innerHTML='<span class="badge'+(last>=0?" on":"")+'"><i></i>'+(last>=0?"Real cargado hasta "+MESL[last]+" 2027":"Solo presupuesto · sin datos reales aún")+'</span>'+(localMode?' <span class="badge" title="Sin conexión con los datos compartidos">Modo local · solo en este navegador</span>':'')+(canW&&dbRef?' <button class="btn" id="imp" style="margin-left:8px">Cargar datos reales</button>':'');
@@ -766,7 +776,7 @@ function render(){
   var h='<div class="controls"><div class="lbl">Ámbito</div><div class="chips">';
   [["grupo","Grupo"],["consolidado","Consolidado"],["operaciones","Operaciones"],["restaurantes","Restaurantes"],["distribucion","Distribución"]].forEach(function(x){h+=chip(x[1],"scope",x[0],S.scope)});
   h+='</div><div class="chips" style="margin-top:6px">';
-  ids().forEach(function(id){h+=chip(budget[id].name,"scope",id,S.scope)});
+  ids().forEach(function(id){h+=chip(budget[id].name,"scope",id,S.scope);if(id==="diluvio")h+=chip("Caleta + Diluvio","scope","caletatot",S.scope)});
   h+='</div><div class="lbl">Periodo</div><div class="chips">';
   [["ytd","Acumulado"],["year","Año"],["q1","T1"],["q2","T2"],["q3","T3"],["q4","T4"]].forEach(function(x){h+=chip(x[1],"period",x[0],S.period)});
   h+='<select class="chip" id="msel" aria-label="Mes" aria-pressed="'+(S.period[0]==="m")+'" style="'+(S.period[0]==="m"?"background:var(--ink);color:var(--bg)":"")+'"><option value="">Mes…</option>';
@@ -778,6 +788,10 @@ function render(){
   else if(c.M.length!==c.use.length||!c.cmp)h+='<div class="note">Periodo con real parcial: se compara solo '+(c.cmp?c.use.map(function(i){return MES[i]}).join(", "):"")+' (meses con datos reales).</div>';
   else h+='<div class="note">'+scopeName(S.scope)+' · '+periodLabel(S.period)+' · comparando '+c.use.length+' '+(c.use.length===1?"mes":"meses")+' con datos reales.</div>';
 
+  if((S.scope==="diluvio"||S.scope==="caletatot"||S.scope==="caleta")&&budget.diluvio&&budget.diluvio.params){
+    var dp=budget.diluvio.params;
+    h+='<div class="note">Diluvio es el nuevo local asociado a Caleta: abre en <b>'+MESL[dp.inicio]+' de 2027</b>'+(S.scope==="caleta"?' y se presupuesta aparte; «Caleta + Diluvio» suma los dos.':'.')+' <button class="btn" id="godil" style="margin-left:6px">Editar variables del local ↓</button></div>';
+  }
   if(S.scope==="grupo")h+='<div class="note">Incluye Alibio Gestión: sus servicios intragrupo ('+eur(elimTotal())+') suman a la facturación del grupo y restan como gasto en cada negocio. «Consolidado» los elimina; el resultado total es el mismo.</div>';
   if(S.scope==="consolidado")h+='<div class="note">Vista consolidada: se eliminan los servicios intragrupo de Alibio Gestión ('+eur(elimTotal())+' de facturación y de gasto). El resultado total coincide con el Excel.</div>';
   var f=rowVals(c,"fact"),d=rowVals(c,"directo"),t=rowVals(c,"total");
@@ -800,12 +814,14 @@ function render(){
   var chips=ctl.querySelector(".controls .chips");
   var sc=ctl.querySelector('[data-scope][aria-pressed="true"]');if(sc&&app._sx==null){app._sx=1;sc.scrollIntoView({inline:"center",block:"nearest"})}
   var foot=document.getElementById("foot");
+  refreshDil();
   foot.textContent="Fuente del presupuesto: "+((meta&&meta.source)||"libro de tesorería oct. 2026 – dic. 2027")+(meta&&meta.updated?" · última actualización de datos: "+meta.updated:"")+". Desviación = Real − Presupuesto; en verde la favorable, en rojo la desfavorable.";
 }
 
 document.addEventListener("click",function(e){
-  var t=e.target.closest("[data-scope],[data-period],[data-metric],[data-mode],[data-m],#exp,#imp");
+  var t=e.target.closest("[data-scope],[data-period],[data-metric],[data-mode],[data-m],#exp,#imp,#godil");
   if(!t)return;
+  if(t.id==="godil"){var db=document.getElementById("dilbox");if(db){db.open=true;db.scrollIntoView({behavior:"smooth",block:"start"})}return}
   if(t.id==="exp"){exportCSV();return}
   if(t.id==="imp"){openImport();return}
   if(t.dataset.scope){S.scope=t.dataset.scope;if(budget[S.scope]){S.simTab=S.scope;refreshSim()}}
@@ -824,14 +840,93 @@ document.addEventListener("change",function(e){
 
 
 /* ---------- Modo local (sin conexión a datos compartidos) ---------- */
-var EMBED={"caleta":{"name":"Caleta","group":"rest","order":1,"fact":[100000,110000,110000,140000,140000,160000,190000,310000,200000,110000,100000,140000],"compras":[35500,39050,39050,49700,49700,56800,67450,110050,71000,39050,35500,49700],"personal":[40000,40000,40000,46000,46000,48000,68000,72000,57000,40000,40000,46000],"gestion":[12000,12000,12000,12000,12000,12000,12000,12000,12000,12000,12000,12000],"fin":[1500,1500,1500,1500,1500,1500,1500,1500,1500,1500,1500,1500],"alibio":[16680.92,15159.01,12492.72,14211.35,13864.91,15264.19,14239.05,17748.09,17000.87,12139.22,12460.06,12574.85]},"sys":{"name":"Santo y Seña","group":"rest","order":2,"fact":[50000,45000,55000,50000,55000,55000,80000,90000,55000,55000,45000,65000],"compras":[17750,15975,19525,17750,19525,19525,28400,31950,19525,19525,15975,23075],"personal":[19000,19000,19000,21000,21000,23000,25000,25000,19000,19000,19000,21000],"gestion":[7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000],"fin":[450,450,450,450,450,450,450,450,450,450,450,450],"alibio":[8340.46,6201.41,6246.36,5075.48,5446.93,5247.06,5995.39,5152.67,4675.24,6069.61,5607.03,5838.32]},"elsanto":{"name":"El Santo","group":"rest","order":3,"fact":[0,45000,50000,55000,55000,60000,80000,90000,60000,55000,45000,55000],"compras":[0,15975,17750,19525,19525,21300,28400,31950,21300,19525,15975,19525],"personal":[14000,14000,14000,16000,16000,18000,18000,18000,16000,16000,16000,18000],"gestion":[7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000],"fin":[1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000],"alibio":[0,6201.41,5678.51,5583.03,5446.93,5724.07,5995.39,5152.67,5100.26,6069.61,5607.03,4940.12]},"tienda":{"name":"Tienda SyS","group":"rest","order":4,"fact":[4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000],"compras":[2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000],"personal":[1500,1500,1500,1500,1500,1500,1500,1500,1500,1500,1500,1500],"gestion":[500,500,500,500,500,500,500,500,500,500,500,500],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[667.24,551.24,454.28,406.04,396.14,381.6,299.77,229.01,340.02,441.43,498.4,359.28]},"casa":{"name":"Casa Angeles","group":"rest","order":5,"fact":[0,10000,40000,40000,50000,40000,50000,50000,50000,50000,50000,70000],"compras":[0,3000,12000,12000,15000,12000,15000,15000,15000,15000,15000,21000],"personal":[3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000],"gestion":[3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[0,1378.09,4542.81,4060.39,4951.75,3816.05,3747.12,2862.6,4250.22,5517.83,6230.03,6287.43]},"st3":{"name":"ST3","group":"dist","order":6,"fact":[64800,54000,59400,70200,64800,64800,86400,97200,64800,59400,54000,70200],"compras":[48600,40500,44550,52650,48600,48600,64800,72900,48600,44550,40500,52650],"personal":[10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000],"gestion":[3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[7309.24,3941.7,3246.07,3625.98,2917.47,2682,2975.02,2064.89,2008.28,3055.18,3228.43,2805.39]},"somos":{"name":"Somos","group":"dist","order":7,"fact":[15000,15000,25000,25000,25000,25000,30000,40000,25000,20000,15000,30000],"compras":[4500,4500,7500,7500,7500,7500,9000,12000,7500,6000,4500,9000],"personal":[9000,9000,11000,11000,13000,13000,13000,13000,11000,9000,9000,11000],"gestion":[3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[2502.14,2067.14,2839.25,2537.74,2475.88,2385.03,2248.27,2290.08,2125.11,2207.13,1869.01,2694.61]},"alibio":{"name":"Alibio Gestión","group":"serv","order":8,"fact":[39000,39000,39000,39000,39000,39000,39000,39000,39000,39000,39000,39000],"compras":[1170,1170,1170,1170,1170,1170,1170,1170,1170,1170,1170,1170],"personal":[32000,32000,32000,32000,32000,32000,32000,32000,32000,32000,32000,32000],"gestion":[2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[0,0,0,0,0,0,0,0,0,0,0,0]}};
-var EMBEDMETA={"source":"Presupuesto 2027 · PyG por negocio (Excel de tesorería oct. 2026 – dic. 2027)","updated":"10/11/2026"};
+var EMBED={"caleta":{"name":"Caleta","group":"rest","order":1,"fact":[100000,110000,110000,140000,140000,160000,190000,310000,200000,110000,100000,140000],"compras":[35500,39050,39050,49700,49700,56800,67450,110050,71000,39050,35500,49700],"personal":[40000,40000,40000,46000,46000,48000,68000,72000,57000,40000,40000,46000],"gestion":[12000,12000,12000,12000,12000,12000,12000,12000,12000,12000,12000,12000],"fin":[1500,1500,1500,1500,1500,1500,1500,1500,1500,1500,1500,1500],"alibio":[16971.28,15376.34,12639.95,14360.86,14007.18,15415.02,14239.05,17748.09,17000.87,12139.22,12460.06,12574.85]},"sys":{"name":"Santo y Seña","group":"rest","order":2,"fact":[50000,45000,55000,50000,55000,55000,80000,90000,55000,55000,45000,65000],"compras":[17750,15975,19525,17750,19525,19525,28400,31950,19525,19525,15975,23075],"personal":[19000,19000,19000,21000,21000,23000,25000,25000,19000,19000,19000,21000],"gestion":[7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000],"fin":[450,450,450,450,450,450,450,450,450,450,450,450],"alibio":[8485.64,6290.32,6319.98,5128.88,5502.82,5298.91,5995.39,5152.67,4675.24,6069.61,5607.03,5838.32]},"elsanto":{"name":"El Santo","group":"rest","order":3,"fact":[0,45000,50000,55000,55000,60000,80000,90000,60000,55000,45000,55000],"compras":[0,15975,17750,19525,19525,21300,28400,31950,21300,19525,15975,19525],"personal":[14000,14000,14000,16000,16000,18000,18000,18000,16000,16000,16000,18000],"gestion":[7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000,7000],"fin":[1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000],"alibio":[0,6290.32,5745.43,5641.77,5502.82,5780.63,5995.39,5152.67,5100.26,6069.61,5607.03,4940.12]},"tienda":{"name":"Tienda SyS","group":"rest","order":4,"fact":[0,0,0,0,0,0,4000,4000,4000,4000,4000,4000],"compras":[0,0,0,0,0,0,2000,2000,2000,2000,2000,2000],"personal":[0,0,0,0,0,0,1500,1500,1500,1500,1500,1500],"gestion":[500,500,500,500,500,500,500,500,500,500,500,500],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[0,0,0,0,0,0,299.77,229.01,340.02,441.43,498.4,359.28]},"casa":{"name":"Casa Angeles","group":"rest","order":5,"fact":[0,10000,40000,40000,50000,40000,50000,50000,50000,50000,50000,70000],"compras":[0,3000,12000,12000,15000,12000,15000,15000,15000,15000,15000,21000],"personal":[12000,12000,12000,12000,12000,12000,12000,12000,12000,12000,12000,12000],"gestion":[6000,6000,6000,6000,6000,6000,6000,6000,6000,6000,6000,6000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[0,1397.85,4596.35,4103.1,5002.57,3853.75,3747.12,2862.6,4250.22,5517.83,6230.03,6287.43]},"st3":{"name":"ST3","group":"dist","order":6,"fact":[64800,54000,59400,70200,64800,64800,86400,97200,64800,59400,54000,70200],"compras":[48600,40500,44550,52650,48600,48600,64800,72900,48600,44550,40500,52650],"personal":[10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000],"gestion":[3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[7497.39,4048.39,3325.57,3700.95,2983.32,2743.08,2975.02,2064.89,2008.28,3055.18,3228.43,2805.39]},"somos":{"name":"Somos","group":"dist","order":7,"fact":[15000,15000,25000,25000,25000,25000,30000,40000,25000,20000,15000,30000],"compras":[4500,4500,7500,7500,7500,7500,9000,12000,7500,6000,4500,9000],"personal":[9000,9000,11000,11000,13000,13000,13000,13000,11000,9000,9000,11000],"gestion":[3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000,3000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[2545.69,2096.77,2872.72,2564.44,2501.28,2408.6,2248.27,2290.08,2125.11,2207.13,1869.01,2694.61]},"alibio":{"name":"Alibio Gestión","group":"serv","order":8,"fact":[39000,39000,39000,39000,39000,39000,39000,39000,39000,39000,39000,39000],"compras":[1170,1170,1170,1170,1170,1170,1170,1170,1170,1170,1170,1170],"personal":[32000,32000,32000,32000,32000,32000,32000,32000,32000,32000,32000,32000],"gestion":[2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000],"fin":[0,0,0,0,0,0,0,0,0,0,0,0],"alibio":[0,0,0,0,0,0,0,0,0,0,0,0]}};
+var EMBEDMETA={"source":"Presupuesto 2027 · PyG por negocio (Excel de tesorería oct. 2026 – dic. 2027), con Diluvio (nuevo local de Caleta)","updated":"20/11/2026"};
+
+/* ---------- Diluvio · nuevo local asociado a Caleta (variables editables) ---------- */
+var DILDEF={inicio:3,pct:35.5,
+  fact:[30000,30000,30000,30000,30000,30000,40000,40000,40000,30000,30000,30000],
+  personal:[4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000],
+  gestion:[0,0,0,0,0,0,0,0,0,0,0,0],
+  fin:[0,0,0,0,0,0,0,0,0,0,0,0]};
+function dilDoc(p){
+  var zero=function(){return Array.apply(null,Array(12)).map(function(){return 0})};
+  var o={name:"Diluvio (Caleta)",group:"rest",order:1.5,parent:"caleta",params:JSON.parse(JSON.stringify(p))},pc=(+p.pct||0)/100;
+  LINES.forEach(function(k){o[k]=zero()});
+  for(var m=0;m<12;m++){
+    if(m<p.inicio)continue;
+    o.fact[m]=+p.fact[m]||0;
+    o.compras[m]=Math.round(o.fact[m]*pc*100)/100;
+    o.personal[m]=+p.personal[m]||0;o.gestion[m]=+p.gestion[m]||0;o.fin[m]=+p.fin[m]||0;
+  }
+  return o;
+}
+EMBED.diluvio=dilDoc(DILDEF);
+var dilDraft=null,dilSig="",dilDirty=false;
+var DROWS=[["fact","Facturación"],["personal","Personal"],["gestion","Otros gastos de gestión"],["fin","Gastos financieros"]];
+function dilBuild(){
+  var w=document.getElementById("dilwrap");if(!w||!dilDraft)return;
+  var old=w.querySelector("details"),was=!!(old&&old.open),p=dilDraft,i,h;
+  h='<details class="sim dil" id="dilbox"><summary><span>🏗️ Nuevo local de Caleta · Diluvio</span><span class="on" id="dilbadge"></span><span class="tg"></span></summary><div id="dilbody">';
+  h+='<p class="sd">Variables del nuevo local. El <b>mes de inicio</b> decide desde cuándo cuenta en el presupuesto: los meses anteriores quedan a cero. Los importes por mes se pueden cambiar; las compras se calculan con el % sobre ventas. Diluvio suma a los restaurantes y a «Caleta + Diluvio». Los servicios de Alibio Gestión se mantienen en Caleta.</p>';
+  h+='<div class="dctl"><label>Mes de inicio <select id="dil-ini">'+MES.map(function(m,j){return '<option value="'+j+'"'+(j===p.inicio?" selected":"")+'>'+m+'</option>'}).join("")+'</select></label><label>Compras % s/ ventas <input type="number" id="dil-pct" step="0.5" min="0" max="100" value="'+p.pct+'"></label></div>';
+  h+='<div class="tw"><table class="dtab"><thead><tr><th>€ / mes</th>';
+  MES.forEach(function(m,j){h+='<th class="mh'+(j<p.inicio?" off":"")+'">'+m+'</th>'});
+  h+='</tr></thead><tbody>';
+  DROWS.forEach(function(r){
+    h+='<tr><td>'+r[1]+'</td>';
+    for(i=0;i<12;i++)h+='<td class="mc'+(i<p.inicio?" off":"")+'"><input type="number" step="100" data-dl="'+r[0]+'" data-i="'+i+'" value="'+(+p[r[0]][i]||0)+'" aria-label="'+r[1]+' '+MES[i]+'"></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div><div class="dprev" id="dilprev"></div>';
+  h+='<div class="sact"><button class="btn" id="dilreset">Restablecer valores del Excel</button><button class="btn pri" id="dilapply"'+(canW&&dbRef?"":" disabled")+'>Aplicar al presupuesto</button></div><div id="dilmsg"></div></div></details>';
+  w.innerHTML=h;
+  if(was)document.getElementById("dilbox").open=true;
+  dilPreview();
+}
+function dilPreview(){
+  var p=dilDraft,d=dilDoc(p),f=0,c=0,pe=0,g=0,fi=0;
+  for(var m=0;m<12;m++){f+=d.fact[m];c+=d.compras[m];pe+=d.personal[m];g+=d.gestion[m];fi+=d.fin[m]}
+  var b=document.getElementById("dilbadge");if(b)b.textContent="abre en "+MES[p.inicio]+" 2027";
+  var pv=document.getElementById("dilprev");
+  if(pv)pv.innerHTML='Con estos datos Diluvio factura <b>'+eur(f)+'</b> en 2027 ('+(12-p.inicio)+' meses), con compras de '+eur(c)+', personal de '+eur(pe)+' y un resultado directo de <b>'+eur(f-c-pe-g-fi)+'</b>'+(dilDirty?' · <b>cambios sin aplicar</b>':'')+'.';
+  var hs=document.querySelectorAll("#dilbody th.mh");hs.forEach(function(el,j){el.classList.toggle("off",j<p.inicio)});
+  document.querySelectorAll("#dilbody td.mc input").forEach(function(el){el.parentNode.classList.toggle("off",+el.dataset.i<p.inicio)});
+}
+function refreshDil(){
+  var w=document.getElementById("dilwrap");if(!w)return;
+  if(!loaded.b||!budget.diluvio||!budget.diluvio.params){w.innerHTML="";dilSig="";return}
+  var sig=JSON.stringify(budget.diluvio.params)+(canW&&dbRef?"w":"r");
+  if(dilDirty||sig===dilSig)return;
+  dilSig=sig;dilDraft=JSON.parse(JSON.stringify(budget.diluvio.params));dilBuild();
+}
+function dilMsg(t,err){var m=document.getElementById("dilmsg");if(m)m.innerHTML=t?'<div class="msg '+(err?"err":"ok")+'">'+t+'</div>':""}
+(function(){
+  var w=document.getElementById("dilwrap");if(!w)return;
+  var onEdit=function(e){
+    var t=e.target;if(!dilDraft)return;
+    if(t.dataset&&t.dataset.dl){dilDraft[t.dataset.dl][+t.dataset.i]=+t.value||0;dilDirty=true;dilPreview()}
+    else if(t.id==="dil-pct"){dilDraft.pct=+t.value||0;dilDirty=true;dilPreview()}
+    else if(t.id==="dil-ini"){dilDraft.inicio=+t.value;dilDirty=true;dilPreview()}
+  };
+  w.addEventListener("input",onEdit);w.addEventListener("change",onEdit);
+  w.addEventListener("click",function(e){
+    var t=e.target.closest("button");if(!t)return;
+    if(t.id==="dilreset"){dilDraft=JSON.parse(JSON.stringify(DILDEF));dilDirty=true;dilBuild();dilMsg("Valores del Excel recuperados. Pulsa «Aplicar al presupuesto» para guardarlos.");return}
+    if(t.id==="dilapply"){
+      if(!dbRef||!canW){dilMsg("No tienes permiso para guardar cambios en este presupuesto.",true);return}
+      var doc=dilDoc(dilDraft);dilDirty=false;
+      dbRef.doc("budget/diluvio").set(doc).then(function(){dilSig="";dilDirty=false;refreshDil();dilMsg("Aplicado: Diluvio entra en el presupuesto desde "+MESL[doc.params.inicio]+" de 2027.")}).catch(function(){dilDirty=true;dilMsg("No se pudo guardar.",true)});
+    }
+  });
+})();
 function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function startLocal(){
   if(localMode)return;
   localMode=true;dbOK=true;
   budget=JSON.parse(JSON.stringify(EMBED));meta=EMBEDMETA;
+  var ovd=lsGet("ppto27_dil",null);if(ovd&&ovd.params)budget.diluvio=dilDoc(ovd.params);
   actuals=lsGet("ppto27_actuals",{});scen=lsGet("ppto27_scen",{});
   loaded.b=true;loaded.a=true;canW=true;
   if(!dl)dl={save:function(o){var blob=new Blob([o.data],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=o.filename;document.body.appendChild(a);a.click();a.remove();return Promise.resolve()}};
@@ -840,6 +935,7 @@ function startLocal(){
       if(q[0]==="actuals"){actuals[q[1]]=d;lsSet("ppto27_actuals",actuals)}
       else if(q[0]==="scenarios"){scen[q[1]]=d;lsSet("ppto27_scen",scen)}
       else if(q[0]==="meta"){meta=d}
+      else if(q[0]==="budget"&&q[1]==="diluvio"){budget.diluvio=d;lsSet("ppto27_dil",d)}
       refreshSim();render();return Promise.resolve();
     },
     delete:function(){if(q[0]==="scenarios"){delete scen[q[1]];lsSet("ppto27_scen",scen)}refreshSim();render();return Promise.resolve()}
@@ -859,7 +955,7 @@ else{
     if(!db){fail();return}
     dbRef=db;refreshSim();
     db.collection("scenarios").onSnapshot(function(s){scen=snapMap(s);refreshSim()},function(){});
-    db.collection("budget").onSnapshot(function(s){budget=snapMap(s);loaded.b=true;refreshSim();render()},fail);
+    db.collection("budget").onSnapshot(function(s){budget=snapMap(s);if(!budget.diluvio){budget.diluvio=dilDoc(DILDEF);if(canW&&dbRef){try{dbRef.doc("budget/diluvio").set(budget.diluvio)}catch(e){}}}loaded.b=true;refreshSim();render()},fail);
     db.collection("actuals").onSnapshot(function(s){actuals=snapMap(s);loaded.a=true;render()},function(){});
     db.doc("meta/info").onSnapshot(function(s){meta=s.exists?s.data():null;render()},function(){});
   }).catch(fail);
